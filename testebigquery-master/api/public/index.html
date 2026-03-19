@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Gestantes — RJ SMS</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#f0f4f8;
+      --card:#fff;
+      --navy:#0d2249;
+      --accent:#2563eb;
+      --accent2:#7c3aed;
+      --green:#16a34a;
+      --red:#dc2626;
+      --yellow:#d97706;
+      --pink:#db2777;
+      --radius:14px;
+      --shadow:0 2px 12px rgba(0,0,0,.07);
+    }
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:#1e293b}
+
+    /* ─ Header ─ */
+    header{
+      background:var(--navy);
+      color:#fff;
+      padding:1rem 2rem;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:1rem;
+    }
+    header h1{font-size:1.1rem;font-weight:700;line-height:1.3}
+    header .sub{font-size:.78rem;opacity:.55;margin-top:.15rem}
+    #last-update{font-size:.75rem;opacity:.5;white-space:nowrap}
+    #loader{display:none;width:20px;height:20px;border:3px solid rgba(255,255,255,.2);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    /* ─ Tabs ─ */
+    .tabs{background:var(--navy);border-top:1px solid rgba(255,255,255,.08);display:flex;gap:0;overflow-x:auto}
+    .tab-btn{
+      padding:.65rem 1.4rem;
+      font-size:.83rem;
+      font-weight:500;
+      color:rgba(255,255,255,.5);
+      background:none;
+      border:none;
+      cursor:pointer;
+      border-bottom:3px solid transparent;
+      transition:.15s;
+      white-space:nowrap;
+    }
+    .tab-btn:hover{color:rgba(255,255,255,.85)}
+    .tab-btn.active{color:#fff;border-bottom-color:#60a5fa}
+
+    /* ─ Main ─ */
+    main{padding:1.6rem;max-width:1400px;margin:0 auto}
+    .tab-panel{display:none}.tab-panel.active{display:block}
+
+    /* ─ KPI row ─ */
+    .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-bottom:1.6rem}
+    .kpi{background:var(--card);border-radius:var(--radius);padding:1.2rem 1.4rem;box-shadow:var(--shadow);border-left:4px solid var(--accent)}
+    .kpi.green{border-left-color:var(--green)}
+    .kpi.red{border-left-color:var(--red)}
+    .kpi.yellow{border-left-color:var(--yellow)}
+    .kpi.purple{border-left-color:var(--accent2)}
+    .kpi.pink{border-left-color:var(--pink)}
+    .kpi .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:#64748b}
+    .kpi .val{font-size:1.9rem;font-weight:800;color:var(--navy);margin-top:.2rem;line-height:1}
+    .kpi .desc{font-size:.72rem;color:#94a3b8;margin-top:.25rem}
+
+    /* ─ Charts grid ─ */
+    .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:1.2rem}
+    .charts.single{grid-template-columns:1fr}
+    .card{background:var(--card);border-radius:var(--radius);padding:1.4rem 1.5rem;box-shadow:var(--shadow)}
+    .card h2{font-size:.88rem;font-weight:600;color:var(--navy);margin-bottom:1rem;display:flex;align-items:center;gap:.5rem}
+    .card h2 .badge{font-size:.68rem;font-weight:600;padding:.2rem .55rem;border-radius:20px;background:#e0f2fe;color:#0369a1}
+    .card canvas{max-height:280px}
+    .card.wide{grid-column:1/-1}
+
+    /* ─ Error ─ */
+    .error-msg{background:#fef2f2;border:1px solid #fca5a5;color:#b91c1c;padding:.8rem 1rem;border-radius:8px;font-size:.82rem;margin-bottom:1rem;display:none}
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Painel de Gestantes · Secretaria Municipal de Saúde</h1>
+    <div class="sub">Cidade do Rio de Janeiro — projeto_gestacoes</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:.8rem">
+    <div id="loader"></div>
+    <span id="last-update">—</span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab-btn active" data-tab="visao-geral">Visão Geral</button>
+  <button class="tab-btn" data-tab="saude-risco">Saúde &amp; Risco</button>
+  <button class="tab-btn" data-tab="prenatal">Pré-natal</button>
+  <button class="tab-btn" data-tab="sifilis-enc">Sífilis &amp; Encaminhamentos</button>
+  <button class="tab-btn" data-tab="emergencias">Emergências</button>
+</nav>
+
+<main>
+  <div id="global-error" class="error-msg"></div>
+
+  <!-- ═══════════════ ABA 1: VISÃO GERAL ════════════════════════ -->
+  <div class="tab-panel active" id="tab-visao-geral">
+    <div class="kpis">
+      <div class="kpi"><div class="lbl">Gestações cadastradas</div><div class="val" id="kpi-total">—</div></div>
+      <div class="kpi green"><div class="lbl">Gestantes ativas</div><div class="val" id="kpi-ativas">—</div></div>
+      <div class="kpi"><div class="lbl">Média de idade</div><div class="val" id="kpi-idade">—</div><div class="desc">anos</div></div>
+      <div class="kpi red"><div class="lbl">Óbitos</div><div class="val" id="kpi-obitos">—</div></div>
+      <div class="kpi yellow"><div class="lbl">Sem atend. há 30d</div><div class="val" id="kpi-30d">—</div></div>
+    </div>
+    <div class="charts">
+      <div class="card">
+        <h2>Evolução Mensal <span class="badge">24 meses</span></h2>
+        <canvas id="chart-mensal"></canvas>
+      </div>
+      <div class="card">
+        <h2>Fase Atual da Gestação</h2>
+        <canvas id="chart-fase"></canvas>
+      </div>
+      <div class="card">
+        <h2>Faixa Etária</h2>
+        <canvas id="chart-faixa"></canvas>
+      </div>
+      <div class="card">
+        <h2>Raça / Cor</h2>
+        <canvas id="chart-raca"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ABA 2: SAÚDE & RISCO ══════════════════════ -->
+  <div class="tab-panel" id="tab-saude-risco">
+    <div class="kpis">
+      <div class="kpi red"><div class="lbl">Hipertensão</div><div class="val" id="k-hiper">—</div></div>
+      <div class="kpi yellow"><div class="lbl">Diabetes</div><div class="val" id="k-diab">—</div></div>
+      <div class="kpi pink"><div class="lbl">Sífilis</div><div class="val" id="k-sif">—</div></div>
+      <div class="kpi purple"><div class="lbl">HIV</div><div class="val" id="k-hiv">—</div></div>
+      <div class="kpi"><div class="lbl">Tuberculose</div><div class="val" id="k-tb">—</div></div>
+      <div class="kpi"><div class="lbl">Obesidade</div><div class="val" id="k-obs">—</div></div>
+    </div>
+    <div class="charts">
+      <div class="card">
+        <h2>Condições de Saúde</h2>
+        <canvas id="chart-condicoes"></canvas>
+      </div>
+      <div class="card">
+        <h2>Área Programática</h2>
+        <canvas id="chart-ap"></canvas>
+      </div>
+      <div class="card wide">
+        <h2>Categorias de Risco <span class="badge">Top 15</span></h2>
+        <canvas id="chart-risco" style="max-height:360px"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ABA 3: PRÉ-NATAL ═════════════════════════ -->
+  <div class="tab-panel" id="tab-prenatal">
+    <div class="kpis">
+      <div class="kpi green"><div class="lbl">Média de consultas</div><div class="val" id="k-cons">—</div></div>
+      <div class="kpi red"><div class="lbl">Sem atend. &gt;30 dias</div><div class="val" id="k-30d2">—</div></div>
+    </div>
+    <div class="charts">
+      <div class="card">
+        <h2>Nº de Consultas Pré-natal</h2>
+        <canvas id="chart-consultas"></canvas>
+      </div>
+      <div class="card">
+        <h2>Tipo de Parto</h2>
+        <canvas id="chart-parto"></canvas>
+      </div>
+      <div class="card wide">
+        <h2>Adequação AAS (prevenção pré-eclâmpsia)</h2>
+        <canvas id="chart-aas" style="max-height:260px"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ABA 4: SÍFILIS & ENCAMINHAMENTOS ══════════ -->
+  <div class="tab-panel" id="tab-sifilis-enc">
+    <div class="charts">
+      <div class="card">
+        <h2>Status Tratamento Sífilis — Gestante</h2>
+        <canvas id="chart-sif-status"></canvas>
+      </div>
+      <div class="card">
+        <h2>Houve Encaminhamento?</h2>
+        <canvas id="chart-enc"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ABA 5: EMERGÊNCIAS ════════════════════════ -->
+  <div class="tab-panel" id="tab-emergencias">
+    <div class="charts single">
+      <div class="card wide">
+        <h2>Top 10 Motivos de Atendimento de Emergência</h2>
+        <canvas id="chart-emerg" style="max-height:380px"></canvas>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ── Tabs ─────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Paleta ───────────────────────────────────────────────────────────────────
+const PALETTE = [
+  '#2563eb','#7c3aed','#db2777','#dc2626','#d97706',
+  '#16a34a','#0891b2','#9333ea','#ea580c','#65a30d',
+  '#0284c7','#be185d','#15803d','#b45309','#7e22ce'
+];
+
+const charts = {};
+
+function mkChart(id, type, labels, datasets, opts = {}) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), {
+    type,
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: opts.legend ?? (type === 'pie' || type === 'doughnut') } },
+      scales: (type === 'pie' || type === 'doughnut') ? {} : {
+        x: { beginAtZero: true, ...opts.x },
+        y: { beginAtZero: true, ...opts.y },
+      },
+      ...opts.extra,
+    }
+  });
+}
+
+// ── Fetch ────────────────────────────────────────────────────────────────────
+async function get(url) {
+  const r = await fetch(url);
+  if (!r.ok) {
+    const e = await r.json().catch(() => ({ error: r.statusText }));
+    throw new Error(e.error || r.statusText);
+  }
+  return r.json();
+}
+
+function setLoading(on) {
+  document.getElementById('loader').style.display = on ? 'block' : 'none';
+}
+
+function showError(msg) {
+  const el = document.getElementById('global-error');
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function n(v) { return Number(v ?? 0); }
+function fmt(v) { return n(v).toLocaleString('pt-BR'); }
+
+// ── Carregar todos os dados ───────────────────────────────────────────────────
+async function loadAll() {
+  setLoading(true);
+  showError('');
+  try {
+    const [resumo, faixa, raca, fase, ap, condicoes, risco, mensal, parto, consultas, sifilis, aas, enc, emerg] = await Promise.all([
+      get('/api/resumo'),
+      get('/api/faixa-etaria'),
+      get('/api/raca'),
+      get('/api/fase-atual'),
+      get('/api/area-programatica'),
+      get('/api/condicoes-saude'),
+      get('/api/categorias-risco'),
+      get('/api/evolucao-mensal'),
+      get('/api/tipo-parto'),
+      get('/api/consultas-prenatal'),
+      get('/api/sifilis'),
+      get('/api/adequacao-aas'),
+      get('/api/encaminhamentos'),
+      get('/api/motivos-emergencia'),
+    ]);
+
+    // ── KPIs gerais
+    document.getElementById('kpi-total').textContent  = fmt(resumo.total_gestacoes);
+    document.getElementById('kpi-ativas').textContent = fmt(resumo.ativas);
+    document.getElementById('kpi-idade').textContent  = n(resumo.media_idade).toFixed(1);
+    document.getElementById('kpi-obitos').textContent = fmt(resumo.obitos);
+    document.getElementById('kpi-30d').textContent    = fmt(resumo.sem_atd_30_dias);
+
+    // ── KPIs saúde
+    document.getElementById('k-hiper').textContent = fmt(resumo.com_hipertensao);
+    document.getElementById('k-diab').textContent  = fmt(resumo.com_diabetes);
+    document.getElementById('k-sif').textContent   = fmt(resumo.com_sifilis);
+    document.getElementById('k-hiv').textContent   = fmt(resumo.com_hiv);
+    document.getElementById('k-30d2').textContent  = fmt(resumo.sem_atd_30_dias);
+    document.getElementById('k-obs').textContent   = '—';
+    document.getElementById('k-tb').textContent    = '—';
+
+    // Preenche obesidade e TB das condições
+    condicoes.forEach(c => {
+      if (c.label === 'Obesidade')   document.getElementById('k-obs').textContent = fmt(c.total);
+      if (c.label === 'Tuberculose') document.getElementById('k-tb').textContent  = fmt(c.total);
+    });
+
+    // ── KPIs pré-natal
+    document.getElementById('k-cons').textContent = n(resumo.media_consultas).toFixed(1);
+    document.getElementById('k-30d2').textContent = fmt(resumo.sem_atd_30_dias);
+
+    // ── Gráfico: evolução mensal
+    mkChart('chart-mensal', 'line',
+      mensal.map(r => r.mes),
+      [{ label: 'Gestações iniciadas', data: mensal.map(r => n(r.total)),
+         borderColor: '#2563eb', backgroundColor: 'rgba(37,99,235,.1)', fill: true, tension: .4, pointRadius: 3 }]
+    );
+
+    // ── Gráfico: fase atual
+    mkChart('chart-fase', 'doughnut',
+      fase.map(r => r.fase_atual),
+      [{ data: fase.map(r => n(r.total)), backgroundColor: PALETTE }]
+    );
+
+    // ── Gráfico: faixa etária
+    mkChart('chart-faixa', 'bar',
+      faixa.map(r => r.faixa),
+      [{ label: 'Gestantes', data: faixa.map(r => n(r.total)),
+         backgroundColor: PALETTE, borderRadius: 6 }]
+    );
+
+    // ── Gráfico: raça/cor
+    mkChart('chart-raca', 'pie',
+      raca.map(r => r.raca),
+      [{ data: raca.map(r => n(r.total)), backgroundColor: PALETTE }]
+    );
+
+    // ── Gráfico: condições de saúde
+    mkChart('chart-condicoes', 'bar',
+      condicoes.map(c => c.label),
+      [{ label: 'Gestantes', data: condicoes.map(c => c.total),
+         backgroundColor: ['#dc2626','#d97706','#db2777','#7c3aed','#0891b2','#ea580c','#1e293b'],
+         borderRadius: 6 }]
+    );
+
+    // ── Gráfico: área programática
+    mkChart('chart-ap', 'bar',
+      ap.map(r => r.area_programatica),
+      [{ label: 'Total', data: ap.map(r => n(r.total)),
+         backgroundColor: '#2563eb', borderRadius: 6 }]
+    );
+
+    // ── Gráfico: categorias de risco (horizontal)
+    mkChart('chart-risco', 'bar',
+      risco.map(r => r.categoria_risco),
+      [{ label: 'Ocorrências', data: risco.map(r => n(r.total)),
+         backgroundColor: PALETTE, borderRadius: 4 }],
+      { extra: { indexAxis: 'y' } }
+    );
+
+    // ── Gráfico: consultas pré-natal
+    mkChart('chart-consultas', 'bar',
+      consultas.map(r => r.faixa_consultas + ' consultas'),
+      [{ label: 'Gestantes', data: consultas.map(r => n(r.total)),
+         backgroundColor: '#16a34a', borderRadius: 6 }]
+    );
+
+    // ── Gráfico: tipo de parto
+    mkChart('chart-parto', 'doughnut',
+      parto.map(r => r.tipo),
+      [{ data: parto.map(r => n(r.total)), backgroundColor: PALETTE }]
+    );
+
+    // ── Gráfico: adequação AAS
+    mkChart('chart-aas', 'bar',
+      aas.map(r => r.adequacao),
+      [{ label: 'Gestantes', data: aas.map(r => n(r.total)),
+         backgroundColor: PALETTE, borderRadius: 6 }]
+    );
+
+    // ── Gráfico: sífilis (agrupa por status gestante)
+    const sifMap = {};
+    sifilis.forEach(r => { sifMap[r.status_gestante] = (sifMap[r.status_gestante] || 0) + n(r.total); });
+    mkChart('chart-sif-status', 'pie',
+      Object.keys(sifMap),
+      [{ data: Object.values(sifMap), backgroundColor: PALETTE }]
+    );
+
+    // ── Gráfico: encaminhamentos
+    mkChart('chart-enc', 'doughnut',
+      enc.map(r => r.houve),
+      [{ data: enc.map(r => n(r.total)), backgroundColor: ['#16a34a','#dc2626','#64748b','#d97706'] }]
+    );
+
+    // ── Gráfico: emergências (horizontal)
+    mkChart('chart-emerg', 'bar',
+      emerg.map(r => r.motivo_atendimento),
+      [{ label: 'Atendimentos', data: emerg.map(r => n(r.total)),
+         backgroundColor: PALETTE, borderRadius: 4 }],
+      { extra: { indexAxis: 'y' } }
+    );
+
+    document.getElementById('last-update').textContent =
+      'Atualizado ' + new Date().toLocaleString('pt-BR');
+  } catch (err) {
+    showError('Erro ao carregar dados: ' + err.message);
+    console.error(err);
+  } finally {
+    setLoading(false);
+  }
+}
+
+loadAll();
+</script>
+</body>
+</html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — RJ SMS</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+    }
+
+    header {
+      background: #16213e;
+      color: #fff;
+      padding: 1.2rem 2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    header h1 { font-size: 1.3rem; font-weight: 600; }
+    header span { font-size: 0.85rem; opacity: .6; }
+
+    main { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+
+    /* KPIs */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .kpi {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .kpi .label { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: #888; }
+    .kpi .value { font-size: 2rem; font-weight: 700; color: #16213e; margin-top: .3rem; }
+    .kpi .sub   { font-size: .78rem; color: #aaa; margin-top: .2rem; }
+
+    /* Charts grid */
+    .charts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 1.4rem;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .card h2 { font-size: .95rem; font-weight: 600; color: #16213e; margin-bottom: 1.2rem; }
+    .card canvas { max-height: 280px; }
+
+    /* Discovery */
+    .discovery {
+      background: #fff;
+      border-radius: 12px;
+      padding: 1.4rem 1.6rem;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      margin-bottom: 2rem;
+    }
+    .discovery h2 { font-size: .95rem; font-weight: 600; margin-bottom: 1rem; }
+    .discovery .row { display: flex; gap: .8rem; flex-wrap: wrap; align-items: center; }
+    .discovery select, .discovery button {
+      padding: .45rem .9rem;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      font-size: .88rem;
+      cursor: pointer;
+    }
+    .discovery button {
+      background: #16213e;
+      color: #fff;
+      border-color: #16213e;
+    }
+    .discovery button:hover { background: #0f3460; }
+    #status { font-size: .82rem; color: #888; margin-top: .6rem; }
+
+    .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #ccc; border-top-color: #16213e; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; margin-right: 6px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Dashboard — Secretaria Municipal de Saúde · RJ</h1>
+    <span id="last-update">Carregando dados…</span>
+  </div>
+</header>
+
+<main>
+
+  <!-- Discover datasets/tables -->
+  <section class="discovery">
+    <h2>Explorar BigQuery</h2>
+    <div class="row">
+      <select id="sel-dataset"><option value="">Carregar datasets…</option></select>
+      <select id="sel-table"><option value="">— selecione um dataset —</option></select>
+      <button id="btn-load">Carregar Dashboard</button>
+    </div>
+    <div id="status"></div>
+  </section>
+
+  <!-- KPI cards -->
+  <section class="kpis">
+    <div class="kpi">
+      <div class="label">Total de Registros</div>
+      <div class="value" id="kpi-total">—</div>
+      <div class="sub">na tabela selecionada</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Meses com dados</div>
+      <div class="value" id="kpi-meses">—</div>
+      <div class="sub">últimos 12 meses</div>
+    </div>
+    <div class="kpi">
+      <div class="label">Municípios</div>
+      <div class="value" id="kpi-municipios">—</div>
+      <div class="sub">distintos na base</div>
+    </div>
+  </section>
+
+  <!-- Charts -->
+  <section class="charts">
+    <div class="card">
+      <h2>Evolução Mensal (últimos 12 meses)</h2>
+      <canvas id="chart-mensal"></canvas>
+    </div>
+    <div class="card">
+      <h2>Distribuição por Faixa Etária</h2>
+      <canvas id="chart-faixa"></canvas>
+    </div>
+    <div class="card" style="grid-column: 1 / -1;">
+      <h2>Top 15 Municípios</h2>
+      <canvas id="chart-municipios" style="max-height:340px;"></canvas>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  const API = '';
+  let chartMensal, chartFaixa, chartMunicipios;
+
+  const COLORS = [
+    '#4361ee','#3a0ca3','#7209b7','#f72585','#4cc9f0',
+    '#4895ef','#560bad','#480ca8','#b5179e','#f4a261',
+    '#e76f51','#2a9d8f','#264653','#e9c46a','#a8dadc'
+  ];
+
+  // ── Inicialização ──────────────────────────────────────────────────────────
+  async function init() {
+    await loadDatasets();
+  }
+
+  async function loadDatasets() {
+    const sel = document.getElementById('sel-dataset');
+    try {
+      const data = await fetchJSON('/api/datasets');
+      sel.innerHTML = '<option value="">— selecione um dataset —</option>';
+      data.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = opt.textContent = d;
+        sel.appendChild(opt);
+      });
+    } catch (e) {
+      setStatus('Erro ao carregar datasets: ' + e.message, true);
+    }
+  }
+
+  document.getElementById('sel-dataset').addEventListener('change', async () => {
+    const dataset = document.getElementById('sel-dataset').value;
+    const selTable = document.getElementById('sel-table');
+    selTable.innerHTML = '<option>Carregando…</option>';
+    if (!dataset) return;
+    try {
+      const tables = await fetchJSON(`/api/datasets/${dataset}/tables`);
+      selTable.innerHTML = '<option value="">— selecione uma tabela —</option>';
+      tables.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = opt.textContent = t;
+        selTable.appendChild(opt);
+      });
+    } catch (e) {
+      setStatus('Erro ao carregar tabelas: ' + e.message, true);
+    }
+  });
+
+  document.getElementById('btn-load').addEventListener('click', () => {
+    const dataset = document.getElementById('sel-dataset').value;
+    const table   = document.getElementById('sel-table').value;
+    if (!dataset || !table) {
+      setStatus('Selecione dataset e tabela primeiro.', true);
+      return;
+    }
+    loadDashboard(dataset, table);
+  });
+
+  // ── Carrega todos os dados do dashboard ───────────────────────────────────
+  async function loadDashboard(dataset, table) {
+    setStatus('<span class="spinner"></span> Consultando BigQuery…');
+
+    // Armazena escolha no sessionStorage p/ recarga rápida
+    sessionStorage.setItem('bq_dataset', dataset);
+    sessionStorage.setItem('bq_table', table);
+
+    try {
+      const [total, faixa, mensal, municipios] = await Promise.all([
+        fetchJSON('/api/total'),
+        fetchJSON('/api/faixa-etaria'),
+        fetchJSON('/api/evolucao-mensal'),
+        fetchJSON('/api/municipios'),
+      ]);
+
+      // KPIs
+      document.getElementById('kpi-total').textContent = Number(total.total).toLocaleString('pt-BR');
+      document.getElementById('kpi-meses').textContent = mensal.length;
+      document.getElementById('kpi-municipios').textContent = municipios.length;
+
+      renderMensal(mensal);
+      renderFaixa(faixa);
+      renderMunicipios(municipios);
+
+      document.getElementById('last-update').textContent =
+        'Atualizado em ' + new Date().toLocaleString('pt-BR');
+      setStatus('');
+    } catch (e) {
+      setStatus('Erro: ' + e.message + ' — confira se BIGQUERY_DATASET e BIGQUERY_TABLE no .env correspondem à tabela selecionada.', true);
+    }
+  }
+
+  // ── Gráficos ──────────────────────────────────────────────────────────────
+  function renderMensal(rows) {
+    const labels = rows.map(r => r.mes);
+    const data   = rows.map(r => Number(r.total));
+    if (chartMensal) chartMensal.destroy();
+    chartMensal = new Chart(document.getElementById('chart-mensal'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Registros',
+          data,
+          borderColor: '#4361ee',
+          backgroundColor: 'rgba(67,97,238,.1)',
+          fill: true,
+          tension: .4,
+          pointRadius: 4,
+        }]
+      },
+      options: { responsive: true, plugins: { legend: { display: false } } }
+    });
+  }
+
+  function renderFaixa(rows) {
+    const labels = rows.map(r => r.faixa);
+    const data   = rows.map(r => Number(r.total));
+    if (chartFaixa) chartFaixa.destroy();
+    chartFaixa = new Chart(document.getElementById('chart-faixa'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Total',
+          data,
+          backgroundColor: COLORS.slice(0, labels.length),
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { y: { beginAtZero: true } }
+      }
+    });
+  }
+
+  function renderMunicipios(rows) {
+    const labels = rows.map(r => r.municipio);
+    const data   = rows.map(r => Number(r.total));
+    if (chartMunicipios) chartMunicipios.destroy();
+    chartMunicipios = new Chart(document.getElementById('chart-municipios'), {
+      type: 'bar',
+      data: {
+        labels,
+        datasets: [{
+          label: 'Registros',
+          data,
+          backgroundColor: COLORS,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: { x: { beginAtZero: true } }
+      }
+    });
+  }
+
+  // ── Utils ─────────────────────────────────────────────────────────────────
+  async function fetchJSON(url) {
+    const res = await fetch(API + url);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: res.statusText }));
+      throw new Error(err.error || res.statusText);
+    }
+    return res.json();
+  }
+
+  function setStatus(msg, isError = false) {
+    const el = document.getElementById('status');
+    el.innerHTML = msg;
+    el.style.color = isError ? '#e63946' : '#888';
+  }
+
+  init();
+</script>
+</body>
+</html>
