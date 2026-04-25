@@ -1,0 +1,26 @@
+[package]
+name        = "dev-assistant-local"
+version     = "0.1.0"
+description = "Dev Assistant Local — Assistente de produtividade para desenvolvedores"
+authors     = ["Dev Assistant"]
+edition     = "2021"
+rust-version = "1.70"
+
+default-run = "dev-assistant-local"
+
+[lib]
+name  = "app_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "1.5", features = [] }
+
+[dependencies]
+tauri      = { version = "1.6", features = ["shell-open"] }
+serde      = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+[features]
+# Necessário para builds de produção com protocolo customizado
+# NÃO REMOVER
+custom-protocol = ["tauri/custom-protocol"]

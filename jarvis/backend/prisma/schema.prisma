@@ -1,0 +1,46 @@
+// Prisma schema — Dev Assistant Local
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  // Caminho relativo ao schema.prisma (prisma/dev.db) == relativo ao CWD do backend (prisma/dev.db)
+  url      = env("DATABASE_URL")
+}
+
+// ─── Project ─────────────────────────────────────────────────────────────────
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  /// Status: active | archived | completed
+  status      String   @default("active")
+  /// Cor hexadecimal exibida na UI
+  color       String   @default("#6366f1")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tasks Task[]
+}
+
+// ─── Task ─────────────────────────────────────────────────────────────────────
+
+model Task {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  /// Status: todo | in_progress | done
+  status      String    @default("todo")
+  /// Priority: low | medium | high
+  priority    String    @default("medium")
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
