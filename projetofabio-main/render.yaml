@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: atlasmed-beta-api
+    runtime: node
+    rootDir: .
+    buildCommand: npm install && npm run build --workspace shared && npm run build --workspace backend
+    startCommand: npm run start --workspace backend
+    envVars:
+      - key: APP_MODE
+        value: firebase
+      - key: PORT
+        value: 3001
+      - key: FRONTEND_URL
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false

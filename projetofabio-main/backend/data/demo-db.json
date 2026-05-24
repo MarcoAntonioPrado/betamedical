@@ -1,0 +1,595 @@
+{
+  "clientes": [
+    {
+      "id": "CLI-001",
+      "nome": "Hospital Santa Elisa",
+      "documento": "12.345.678/0001-90",
+      "email": "engenharia@santaelisa.br",
+      "telefone": "(19) 99888-1000",
+      "pessoaContato": "Cláudia Ramos",
+      "endereco": "Av. Brasil",
+      "numero": "1800",
+      "bairro": "Centro",
+      "cidade": "Campinas",
+      "estado": "SP",
+      "cep": "13015-000",
+      "observacoes": "Conta piloto para demonstrações do beta.",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "CLI-002",
+      "nome": "Clínica Horizonte",
+      "documento": "45.220.990/0001-10",
+      "email": "compras@clinicahorizonte.br",
+      "telefone": "(11) 95555-8800",
+      "pessoaContato": "Igor Menezes",
+      "endereco": "Rua Aroeira",
+      "numero": "88",
+      "bairro": "Jardins",
+      "cidade": "São Paulo",
+      "estado": "SP",
+      "cep": "01420-020",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "equipamentos": [
+    {
+      "id": "EQ-001",
+      "nome": "Monitor multiparamétrico",
+      "modelo": "LifeView M7",
+      "numeroSerie": "LV-M7-2401",
+      "clienteId": "CLI-001",
+      "local": "UTI Adulto",
+      "tipo": "Monitorização",
+      "status": "Em Operação",
+      "proximaCalibracao": "2026-11-12",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "EQ-002",
+      "nome": "Bomba de infusão",
+      "modelo": "FlowCare 12",
+      "numeroSerie": "FC12-7781",
+      "clienteId": "CLI-001",
+      "local": "Posto 3",
+      "tipo": "Infusão",
+      "status": "Em Manutenção",
+      "proximaCalibracao": "2026-08-18",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "EQ-003",
+      "nome": "Desfibrilador externo",
+      "modelo": "ShockLine D5",
+      "numeroSerie": "D5-3377",
+      "clienteId": "CLI-002",
+      "local": "Pronto atendimento",
+      "tipo": "Emergência",
+      "status": "Em Operação",
+      "proximaCalibracao": "2026-09-09",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "funcionarios": [
+    {
+      "id": "FUNC-001",
+      "nome": "Ana Campos",
+      "cargo": "Coordenadora técnica",
+      "email": "admin@atlasmed.demo",
+      "telefone": "(19) 98888-1001",
+      "contaVinculada": "USR-001",
+      "especialidade": "Gestão técnica",
+      "ativo": true,
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "FUNC-002",
+      "nome": "Rafael Souza",
+      "cargo": "Técnico biomédico",
+      "email": "tecnico@atlasmed.demo",
+      "telefone": "(19) 98888-1002",
+      "contaVinculada": "USR-002",
+      "especialidade": "Calibração e bancada",
+      "ativo": true,
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "FUNC-003",
+      "nome": "Marina Lopes",
+      "cargo": "Operações",
+      "email": "operacao@atlasmed.demo",
+      "telefone": "(11) 97777-2200",
+      "contaVinculada": "USR-003",
+      "especialidade": "Backoffice",
+      "ativo": true,
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "fornecedores": [
+    {
+      "id": "FOR-001",
+      "nome": "BioSupplies",
+      "razaoSocial": "BioSupplies Comércio Técnico Ltda",
+      "cnpj": "21.200.333/0001-55",
+      "responsavel": "Maurício Neves",
+      "email": "contato@biosupplies.demo",
+      "telefone": "(11) 3123-9000",
+      "categoria": "Peças críticas",
+      "produtosServicos": "Sensores, placas e kits de manutenção.",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "FOR-002",
+      "nome": "TecCabos",
+      "razaoSocial": "TecCabos Soluções Hospitalares",
+      "cnpj": "32.120.444/0001-20",
+      "responsavel": "Paula Viana",
+      "email": "vendas@teccabos.demo",
+      "telefone": "(41) 3020-1100",
+      "categoria": "Acessórios e cabos",
+      "productsServicos": "Cabos, sensores, manguitos e acessórios.",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "pecas": [
+    {
+      "id": "PEC-001",
+      "codigo": "SENS-778",
+      "nome": "Sensor de fluxo",
+      "descricao": "Sensor de reposição para bomba de infusão.",
+      "fornecedorId": "FOR-001",
+      "localizacao": "Estante B2",
+      "unidade": "un",
+      "quantidade": 8,
+      "minimo": 4,
+      "precoCusto": 140,
+      "precoVenda": 230,
+      "status": "Ativo",
+      "historico": [
+        {
+          "data": "2026-05-20T10:00:00.000Z",
+          "tipo": "Criação",
+          "qtd": 8,
+          "saldo": 8,
+          "obs": "Carga inicial do beta"
+        }
+      ],
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "PEC-002",
+      "codigo": "BATT-310",
+      "nome": "Bateria standby",
+      "descricao": "Bateria para monitores portáteis.",
+      "fornecedorId": "FOR-001",
+      "localizacao": "Estante A1",
+      "unidade": "un",
+      "quantidade": 2,
+      "minimo": 3,
+      "precoCusto": 280,
+      "precoVenda": 420,
+      "status": "Ativo",
+      "historico": [
+        {
+          "data": "2026-05-20T10:00:00.000Z",
+          "tipo": "Criação",
+          "qtd": 2,
+          "saldo": 2,
+          "obs": "Carga inicial do beta"
+        }
+      ],
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "acessorios": [
+    {
+      "id": "ACC-001",
+      "codigo": "CAB-ECG-5V",
+      "nome": "Cabo ECG 5 vias",
+      "descricao": "Cabo de monitorização adulto.",
+      "fornecedorId": "FOR-002",
+      "localizacao": "Gaveta C4",
+      "unidade": "un",
+      "quantidade": 5,
+      "minimo": 2,
+      "precoCusto": 78,
+      "precoVenda": 140,
+      "status": "Ativo",
+      "historico": [
+        {
+          "data": "2026-05-20T10:00:00.000Z",
+          "tipo": "Criação",
+          "qtd": 5,
+          "saldo": 5,
+          "obs": "Carga inicial do beta"
+        }
+      ],
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "ACC-002",
+      "codigo": "MANG-NIBP-M",
+      "nome": "Manguito NIBP adulto M",
+      "descricao": "Manguito para monitor multiparamétrico.",
+      "fornecedorId": "FOR-002",
+      "localizacao": "Gaveta C2",
+      "unidade": "un",
+      "quantidade": 3,
+      "minimo": 3,
+      "precoCusto": 44,
+      "precoVenda": 88,
+      "status": "Ativo",
+      "historico": [
+        {
+          "data": "2026-05-20T10:00:00.000Z",
+          "tipo": "Criação",
+          "qtd": 3,
+          "saldo": 3,
+          "obs": "Carga inicial do beta"
+        }
+      ],
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "contratos": [
+    {
+      "id": "CON-001",
+      "clienteId": "CLI-001",
+      "tipo": "Manutenção",
+      "status": "Ativo",
+      "inicioVigencia": "2026-01-01",
+      "fimVigencia": "2026-12-31",
+      "valorMensal": 8200,
+      "valorTotal": 98400,
+      "formaPagamento": "Boleto mensal",
+      "sla": "Atendimento em até 24h",
+      "escopo": "Manutenção corretiva e preventiva de equipamentos críticos.",
+      "responsavelCliente": "Cláudia Ramos",
+      "emailCliente": "engenharia@santaelisa.br",
+      "telefoneCliente": "(19) 99888-1000",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "orcamentos": [
+    {
+      "id": "ORC-001",
+      "clienteId": "CLI-002",
+      "equipamentoId": "EQ-003",
+      "data": "2026-05-14",
+      "status": "Enviado",
+      "prazoExecucao": "5 dias úteis",
+      "validadeProposta": "2026-05-31",
+      "desconto": 150,
+      "subtotal": 2450,
+      "total": 2300,
+      "observacoes": "Troca preventiva e calibração completa.",
+      "itens": [
+        {
+          "tipo": "Servico",
+          "descricao": "Calibração e ajustes",
+          "quantidade": 1,
+          "valorUnitario": 1100
+        },
+        {
+          "tipo": "Peça",
+          "descricao": "Bateria standby",
+          "quantidade": 2,
+          "valorUnitario": 280,
+          "pecaId": "PEC-002"
+        },
+        {
+          "tipo": "Acessório",
+          "descricao": "Cabo ECG 5 vias",
+          "quantidade": 2,
+          "valorUnitario": 60,
+          "acessorioId": "ACC-001"
+        }
+      ],
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "ordensServico": [
+    {
+      "id": "OS-001",
+      "clienteId": "CLI-001",
+      "equipamentoId": "EQ-002",
+      "funcionarioId": "FUNC-002",
+      "descricao": "Falha intermitente no fluxo e alarme recorrente.",
+      "localizacao": "Posto 3",
+      "data": "2026-05-18",
+      "status": "Em Manutenção",
+      "prioridade": "Alta",
+      "servicosExecutados": "Diagnóstico inicial e limpeza interna.",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "OS-002",
+      "clienteId": "CLI-002",
+      "equipamentoId": "EQ-003",
+      "funcionarioId": "FUNC-001",
+      "descricao": "Verificação de descarga rápida da bateria.",
+      "localizacao": "Pronto atendimento",
+      "data": "2026-05-19",
+      "status": "Aguardando Peça",
+      "prioridade": "Media",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "historicoOS": [
+    {
+      "id": "OS-090",
+      "clienteId": "CLI-001",
+      "equipamentoId": "EQ-001",
+      "funcionarioId": "FUNC-002",
+      "descricao": "Calibração anual concluída.",
+      "localizacao": "UTI Adulto",
+      "data": "2026-04-10",
+      "status": "Concluída",
+      "prioridade": "Baixa",
+      "servicosExecutados": "Ajustes finos e certificação.",
+      "fechadoEm": "2026-04-11T15:00:00.000Z",
+      "fechamento": {
+        "funcionarioId": "FUNC-002",
+        "acao": "Calibração e validação final",
+        "problema": "Rotina preventiva programada",
+        "pecasUsadas": [],
+        "acessoriosUsados": []
+      },
+      "createdAt": "2026-04-10T08:00:00.000Z",
+      "updatedAt": "2026-04-11T15:00:00.000Z"
+    }
+  ],
+  "certificados": [
+    {
+      "id": "CERT-001",
+      "equipamentoId": "EQ-001",
+      "equipamentoNome": "Monitor multiparamétrico",
+      "equipamentoNumeroSerie": "LV-M7-2401",
+      "rotinaId": "ROT-001",
+      "rotinaNome": "Inspeção preventiva multiparamétrica",
+      "padraoId": "PAD-001",
+      "padraoNome": "Analisador Fluke VT650",
+      "tecnicoNome": "Rafael Souza",
+      "tipo": "preventiva",
+      "data": "2026-04-11",
+      "statusGeral": "aprovado",
+      "observacoes": "Sem desvios relevantes.",
+      "checklist": [
+        {
+          "nome": "Teste de alarmes",
+          "status": "ok",
+          "medicao": "Aprovado"
+        },
+        {
+          "nome": "Integridade de cabos",
+          "status": "ok",
+          "medicao": "Sem avarias"
+        }
+      ],
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "rotinasCertificacao": [
+    {
+      "id": "ROT-001",
+      "nome": "Inspeção preventiva multiparamétrica",
+      "tipo": "preventiva",
+      "equipamentoTipo": "Monitorização",
+      "campos": [
+        {
+          "nome": "Teste de alarmes"
+        },
+        {
+          "nome": "Integridade de cabos"
+        },
+        {
+          "nome": "Leitura de SpO2",
+          "referencia": "98%",
+          "unidade": "%"
+        }
+      ],
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "ROT-002",
+      "nome": "Calibração de bomba de infusão",
+      "tipo": "calibracao",
+      "equipamentoTipo": "Infusão",
+      "campos": [
+        {
+          "nome": "Fluxo programado",
+          "referencia": "100",
+          "unidade": "ml/h"
+        },
+        {
+          "nome": "Precisão do alarme"
+        }
+      ],
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "padroesCalibracao": [
+    {
+      "id": "PAD-001",
+      "nome": "Analisador Fluke VT650",
+      "tipo": "Analisador de gases e ventilação",
+      "numeroSerie": "VT650-90011",
+      "fabricante": "Fluke Biomedical",
+      "dataCalibracao": "2026-02-01",
+      "validadeCalibracao": "2027-02-01",
+      "responsavel": "Laboratório parceiro",
+      "status": "Válido",
+      "observacoes": "Padrão principal do laboratório.",
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "users": [
+    {
+      "id": "USR-001",
+      "email": "admin@atlasmed.demo",
+      "nome": "Ana Campos",
+      "role": "admin",
+      "staffId": "FUNC-001",
+      "ativo": true,
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "USR-002",
+      "email": "tecnico@atlasmed.demo",
+      "nome": "Rafael Souza",
+      "role": "tecnico",
+      "staffId": "FUNC-002",
+      "ativo": true,
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "USR-003",
+      "email": "operacao@atlasmed.demo",
+      "nome": "Marina Lopes",
+      "role": "operador",
+      "staffId": "FUNC-003",
+      "ativo": true,
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    }
+  ],
+  "configuracoes": [
+    {
+      "id": "company-profile",
+      "nome": "Perfil operacional",
+      "descricao": "Dados neutros usados no beta e no cabeçalho do painel.",
+      "valor": {
+        "nomeEmpresa": "AtlasMed Beta",
+        "tagline": "Gestão moderna para equipamentos médicos e engenharia clínica.",
+        "cidadeBase": "Campinas",
+        "telefone": "(19) 3200-4500",
+        "email": "contato@atlasmed.demo",
+        "endereco": "Rua das Oficinas, 145"
+      },
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "role-access",
+      "nome": "Permissões por papel",
+      "descricao": "Configuração central dos módulos habilitados por perfil.",
+      "valor": {
+        "admin": [
+          "dashboard",
+          "financeiro",
+          "ordens-servico",
+          "historico-os",
+          "equipamentos",
+          "orcamentos",
+          "funcionarios",
+          "clientes",
+          "contratos",
+          "certificados",
+          "fornecedores",
+          "pecas",
+          "acessorios",
+          "padroes-calibracao",
+          "usuarios",
+          "configuracoes"
+        ],
+        "gerente": [
+          "dashboard",
+          "financeiro",
+          "ordens-servico",
+          "historico-os",
+          "equipamentos",
+          "orcamentos",
+          "funcionarios",
+          "clientes",
+          "contratos",
+          "certificados",
+          "fornecedores",
+          "pecas",
+          "acessorios",
+          "padroes-calibracao",
+          "configuracoes"
+        ],
+        "tecnico": [
+          "dashboard",
+          "ordens-servico",
+          "historico-os",
+          "equipamentos",
+          "clientes",
+          "certificados",
+          "pecas",
+          "acessorios",
+          "padroes-calibracao"
+        ],
+        "operador": [
+          "dashboard",
+          "ordens-servico",
+          "equipamentos",
+          "orcamentos",
+          "clientes",
+          "contratos"
+        ]
+      },
+      "createdAt": "2026-05-20T10:00:00.000Z",
+      "updatedAt": "2026-05-20T10:00:00.000Z"
+    },
+    {
+      "id": "demo-auth",
+      "nome": "Credenciais demo",
+      "descricao": "Credenciais locais usadas apenas para o modo demo.",
+      "valor": {
+        "accounts": [
+          {
+            "email": "admin@atlasmed.demo",
+            "password": "Atlas123!",
+            "role": "admin",
+            "name": "Ana Campos",
+            "staffId": "FUNC-001",
+            "userId": "USR-001"
+          },
+          {
+            "email": "tecnico@atlasmed.demo",
+            "password": "Atlas123!",
+            "role": "tecnico",
+            "name": "Rafael Souza",
+            "staffId": "FUNC-002",
+            "userId": "USR-002"
+          },
+          {
+            "email": "operacao@atlasmed.demo",
+            "password": "Atlas123!",
+            "role": "operador",
+            "name": "Marina Lopes",
+            "staffId": "FUNC-003",
+            "userId": "USR-003"
+          }
+        ]
+      },
+      "createdAt": "2026-05-20T21:55:29.491Z",
+      "updatedAt": "2026-05-20T21:55:29.491Z"
+    }
+  ]
+}
