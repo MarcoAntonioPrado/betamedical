@@ -1,5 +1,7 @@
 import type { AppModuleDefinition, CalibrationStatus, ContractStatus, ContractType, EntityConfig, InventoryStatus, ModuleId, RoleAccessConfig, SelectOption, ServiceOrderStatus, BudgetStatus, EquipmentStatus } from './types.js'
 
+
+
 export const EQUIPMENT_STATUS_OPTIONS: SelectOption[] = [
   { label: 'Em Operação', value: 'Em Operação' },
   { label: 'Em Manutenção', value: 'Em Manutenção' },
@@ -232,10 +234,45 @@ export const APP_MODULES: AppModuleDefinition[] = [
 
 const equipmentColumns = [
   { key: 'id', label: 'Código' },
+  { key: 'tag', label: 'TAG' },
   { key: 'nome', label: 'Equipamento' },
+  { key: 'fabricante', label: 'Fabricante' },
   { key: 'modelo', label: 'Modelo' },
   { key: 'numeroSerie', label: 'Série' },
+  { key: 'setor', label: 'Setor' },
   { key: 'status', label: 'Status', type: 'status' as const },
+  { key: 'proximaCalibracao', label: 'Próx. Calibração' },
+]
+
+export const TIPO_CERTIFICADO_OPTIONS: SelectOption[] = [
+  { label: 'Manutenção Preventiva', value: 'preventiva' },
+  { label: 'Calibração', value: 'calibracao' },
+  { label: 'Manutenção Corretiva', value: 'corretiva' },
+  { label: 'Inspeção Técnica', value: 'inspecao' },
+  { label: 'Segurança Elétrica', value: 'seguranca-eletrica' },
+  { label: 'Qualificação', value: 'qualificacao' },
+]
+
+export const TIPO_CERTIFICADO_LABELS: Record<string, string> = {
+  preventiva: 'Manutenção Preventiva',
+  calibracao: 'Calibração',
+  corretiva: 'Manutenção Corretiva',
+  inspecao: 'Inspeção Técnica',
+  'seguranca-eletrica': 'Segurança Elétrica',
+  qualificacao: 'Qualificação',
+}
+
+export const CLASSE_RISCO_OPTIONS: SelectOption[] = [
+  { label: 'Classe I', value: 'I' },
+  { label: 'Classe IIa', value: 'IIa' },
+  { label: 'Classe IIb', value: 'IIb' },
+  { label: 'Classe III', value: 'III' },
+]
+
+export const CLASSE_EQUIPAMENTO_OPTIONS: SelectOption[] = [
+  { label: 'Classe B', value: 'B' },
+  { label: 'Classe BF', value: 'BF' },
+  { label: 'Classe CF', value: 'CF' },
 ]
 
 const inventoryColumns = [
@@ -286,17 +323,28 @@ export const ENTITY_CONFIGS: Record<string, EntityConfig> = {
     pluralLabel: 'equipamentos',
     description: 'Cadastro técnico do parque médico.',
     prefix: 'EQ',
-    searchableKeys: ['id', 'nome', 'modelo', 'numeroSerie', 'local'],
+    searchableKeys: ['id', 'tag', 'nome', 'fabricante', 'modelo', 'numeroSerie', 'numeroPatrimonio', 'setor', 'hospital', 'local'],
     columns: equipmentColumns,
     fields: [
       { key: 'nome', label: 'Nome do equipamento', type: 'text', required: true },
+      { key: 'fabricante', label: 'Fabricante', type: 'text' },
       { key: 'modelo', label: 'Modelo', type: 'text', required: true },
       { key: 'numeroSerie', label: 'Número de série', type: 'text', required: true },
-      { key: 'tipo', label: 'Tipo', type: 'text' },
-      { key: 'clienteId', label: 'Cliente', type: 'relation', relation: { collection: 'clientes', labelKey: 'nome' } },
+      { key: 'numeroPatrimonio', label: 'Número de patrimônio', type: 'text' },
+      { key: 'tag', label: 'TAG', type: 'text' },
+      { key: 'tipo', label: 'Tipo de equipamento', type: 'text' },
+      { key: 'classeRisco', label: 'Classe de risco', type: 'select', options: CLASSE_RISCO_OPTIONS },
+      { key: 'classeEquipamento', label: 'Classe elétrica (BF/CF/B)', type: 'select', options: CLASSE_EQUIPAMENTO_OPTIONS },
+      { key: 'clienteId', label: 'Cliente / Hospital', type: 'relation', relation: { collection: 'clientes', labelKey: 'nome' } },
+      { key: 'hospital', label: 'Hospital', type: 'text' },
+      { key: 'setor', label: 'Setor', type: 'text' },
       { key: 'local', label: 'Local de instalação', type: 'text', required: true },
-      { key: 'status', label: 'Status', type: 'select', options: EQUIPMENT_STATUS_OPTIONS, required: true },
+      { key: 'status', label: 'Status operacional', type: 'select', options: EQUIPMENT_STATUS_OPTIONS, required: true },
+      { key: 'dataAquisicao', label: 'Data de aquisição', type: 'date' },
+      { key: 'dataInstalacao', label: 'Data de instalação', type: 'date' },
       { key: 'proximaCalibracao', label: 'Próxima calibração', type: 'date' },
+      { key: 'proximaManutencaoPreventiva', label: 'Próxima manutenção preventiva', type: 'date' },
+      { key: 'observacoes', label: 'Observações técnicas', type: 'textarea', multilineRows: 4 },
     ],
   },
   funcionarios: {

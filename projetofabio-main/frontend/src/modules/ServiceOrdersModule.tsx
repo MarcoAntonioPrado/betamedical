@@ -15,6 +15,93 @@ interface UsageRow {
 
 const emptyUsageRow: UsageRow = { itemId: '', quantidade: 1 }
 
+function printOS(order: Record<string, unknown>, equipmentName: string, clientName: string, techName: string) {
+  const statusColor = order.status === 'Concluída' ? '#16a34a' : order.status === 'Em Manutenção' ? '#d97706' : '#2563eb'
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>OS ${order.id as string}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 10pt; color: #1a1a1a; }
+  @page { size: A4; margin: 15mm; }
+  .header { display: flex; justify-content: space-between; border-bottom: 2px solid #1e40af; padding-bottom: 10px; margin-bottom: 14px; }
+  .co { font-size: 14pt; font-weight: bold; color: #1e40af; }
+  .co-sub { font-size: 9pt; color: #666; }
+  .os-title { text-align: right; }
+  .os-title h1 { font-size: 12pt; font-weight: bold; color: #1e40af; }
+  .badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-weight: bold; color: white; background: ${statusColor}; margin-top: 4px; font-size: 9pt; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 12px; }
+  .section { margin-bottom: 12px; }
+  .section-title { font-size: 9pt; font-weight: bold; text-transform: uppercase; color: #1e40af; border-bottom: 1px solid #dbeafe; padding-bottom: 2px; margin-bottom: 6px; }
+  .kv { margin-bottom: 4px; }
+  .kv span { font-size: 8pt; color: #666; display: block; }
+  .kv strong { font-size: 9.5pt; }
+  .text-block { font-size: 9pt; line-height: 1.6; padding: 8px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px; min-height: 40px; white-space: pre-wrap; }
+  .sig-block { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 24px; }
+  .sig-line { border-top: 1px solid #333; padding-top: 4px; text-align: center; font-size: 8pt; color: #444; }
+  .footer { margin-top: 16px; border-top: 1px solid #ddd; padding-top: 8px; display: flex; justify-content: space-between; font-size: 8pt; color: #777; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <div class="co">AtlasMed Engenharia Clínica</div>
+    <div class="co-sub">Gestão de Equipamentos Médicos</div>
+  </div>
+  <div class="os-title">
+    <h1>ORDEM DE SERVIÇO</h1>
+    <div style="font-size:9pt;color:#555">Nº ${order.id as string}</div>
+    <div class="badge">${order.status as string}</div>
+  </div>
+</div>
+<div class="two-col">
+  <div class="section">
+    <div class="section-title">Dados do Equipamento</div>
+    <div class="kv"><span>Equipamento</span><strong>${equipmentName}</strong></div>
+    <div class="kv"><span>Local</span><strong>${(order.localizacao as string) ?? '—'}</strong></div>
+  </div>
+  <div class="section">
+    <div class="section-title">Dados da OS</div>
+    <div class="kv"><span>Cliente</span><strong>${clientName}</strong></div>
+    <div class="kv"><span>Data</span><strong>${formatDate(order.data as string)}</strong></div>
+    <div class="kv"><span>Prioridade</span><strong>${(order.prioridade as string) ?? '—'}</strong></div>
+    <div class="kv"><span>Técnico</span><strong>${techName}</strong></div>
+  </div>
+</div>
+<div class="section">
+  <div class="section-title">Descrição do problema / serviço solicitado</div>
+  <div class="text-block">${(order.descricao as string) ?? '—'}</div>
+</div>
+${order.servicosExecutados ? `<div class="section">
+  <div class="section-title">Serviços executados</div>
+  <div class="text-block">${order.servicosExecutados as string}</div>
+</div>` : ''}
+${order.fechamento ? `<div class="section">
+  <div class="section-title">Encerramento</div>
+  <div class="kv"><span>Ação corretiva</span><strong>${(order.fechamento as Record<string, string>).acao ?? '—'}</strong></div>
+  <div class="kv"><span>Causa raiz / problema</span><strong>${(order.fechamento as Record<string, string>).problema ?? '—'}</strong></div>
+</div>` : ''}
+<div class="sig-block">
+  <div><div class="sig-line">${techName}<br>Técnico Responsável</div></div>
+  <div><div class="sig-line">___________________________<br>Aprovação do Cliente / Gestor</div></div>
+</div>
+<div class="footer">
+  <span>AtlasMed Engenharia Clínica</span>
+  <span>OS ${order.id as string} · ${formatDate(order.data as string)}</span>
+</div>
+</body>
+</html>`
+
+  const win = window.open('', '_blank', 'width=900,height=700')
+  if (!win) { alert('Popup bloqueado. Permita popups neste site.'); return }
+  win.document.write(html)
+  win.document.close()
+  win.focus()
+  setTimeout(() => { win.print() }, 400)
+}
+
 export function ServiceOrdersModule() {
   const { collections, ensureCollections, saveRecord, deleteRecord, closeServiceOrder, resolveLabel } = useAppData()
   const { showNotice } = useUi()
@@ -186,6 +273,7 @@ export function ServiceOrdersModule() {
               </div>
               <div className="inline-actions">
                 <button className="ghost-button" type="button" onClick={() => openEdit(order as unknown as Record<string, unknown>)}>Editar</button>
+                <button className="ghost-button" type="button" onClick={() => printOS(order as unknown as Record<string, unknown>, resolveLabel('equipamentos', order.equipamentoId, 'nome'), resolveLabel('clientes', order.clienteId, 'nome'), resolveLabel('funcionarios', order.funcionarioId, 'nome'))}>PDF</button>
                 <button className="ghost-button" type="button" onClick={() => {
                   setClosing(order as unknown as Record<string, unknown>)
                   setCloseForm({ funcionarioId: String(order.funcionarioId ?? ''), acao: '', problema: '', pecasUsadas: [emptyUsageRow], acessoriosUsados: [emptyUsageRow] })
@@ -219,6 +307,7 @@ export function ServiceOrdersModule() {
               <span>{order.prioridade}</span>
               <div className="inline-actions">
                 <button className="ghost-button" type="button" onClick={() => openEdit(order as unknown as Record<string, unknown>)}>Editar</button>
+                <button className="ghost-button" type="button" onClick={() => printOS(order as unknown as Record<string, unknown>, resolveLabel('equipamentos', order.equipamentoId, 'nome'), resolveLabel('clientes', order.clienteId, 'nome'), resolveLabel('funcionarios', order.funcionarioId, 'nome'))}>PDF</button>
                 <button className="ghost-button" type="button" onClick={() => {
                   setClosing(order as unknown as Record<string, unknown>)
                   setCloseForm({ funcionarioId: String(order.funcionarioId ?? ''), acao: '', problema: '', pecasUsadas: [emptyUsageRow], acessoriosUsados: [emptyUsageRow] })

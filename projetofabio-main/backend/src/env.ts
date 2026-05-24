@@ -5,7 +5,9 @@ loadEnv()
 
 const envSchema = z.object({
   PORT: z.coerce.number().int().positive().default(3001),
-  APP_MODE: z.enum(['demo', 'firebase']).default('demo'),
+  // Default to 'firebase' so Vercel never falls back to demo mode accidentally.
+  // Set APP_MODE=demo explicitly to enable demo/offline mode.
+  APP_MODE: z.preprocess((v) => (v === '' ? undefined : v), z.enum(['demo', 'firebase'])).default('firebase'),
   FRONTEND_URL: z.string().default('*'),
   FIREBASE_PROJECT_ID: z.string().optional(),
   FIREBASE_CLIENT_EMAIL: z.string().optional(),

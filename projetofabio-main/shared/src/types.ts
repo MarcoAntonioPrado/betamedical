@@ -81,13 +81,24 @@ export interface Cliente extends ResourceBase {
 export interface Equipamento extends ResourceBase {
   nome: string
   modelo: string
+  fabricante?: string
   numeroSerie: string
+  numeroPatrimonio?: string
+  tag?: string
   clienteId?: string
+  hospital?: string
+  setor?: string
   local: string
   tipo?: string
+  classeRisco?: 'I' | 'IIa' | 'IIb' | 'III'
+  classeEquipamento?: 'B' | 'BF' | 'CF'
   status: EquipmentStatus
+  dataAquisicao?: string
+  dataInstalacao?: string
   ultimaIntervencao?: string
   proximaCalibracao?: string
+  proximaManutencaoPreventiva?: string
+  observacoes?: string
 }
 
 export interface Funcionario extends ResourceBase {
@@ -209,27 +220,92 @@ export interface OrdemServico extends ResourceBase {
   fechamento?: OrdemServicoFechamento
 }
 
+export type TipoCertificado =
+  | 'preventiva'
+  | 'calibracao'
+  | 'corretiva'
+  | 'inspecao'
+  | 'seguranca-eletrica'
+  | 'qualificacao'
+
+export interface EtapaRotina {
+  id: string
+  titulo: string
+  descricao?: string
+  checklist: Array<{ item: string; obrigatorio: boolean }>
+  campos: Array<{ nome: string; tipo: 'texto' | 'numero' | 'select' | 'boolean'; referencia?: string; unidade?: string; tolerancia?: string; obrigatorio: boolean }>
+}
+
 export interface RotinaCertificacao extends ResourceBase {
   nome: string
-  tipo: 'preventiva' | 'calibracao'
+  tipo: TipoCertificado
   equipamentoTipo: string
+  descricao?: string
   campos: Array<{ nome: string; referencia?: string; unidade?: string }>
+  etapas?: EtapaRotina[]
+  criteriosAprovacao?: string
+  ativo?: boolean
+}
+
+export interface MedicaoCalibracao {
+  pontoNominal: string
+  valorMedido: string
+  erroEncontrado?: string
+  incerteza?: string
+  tolerancia?: string
+  resultado: 'Conforme' | 'Não Conforme'
+}
+
+export interface ResultadoSegurancaEletrica {
+  correnteFugaTerra?: string
+  correnteFugaInvolucro?: string
+  correnteFugaPaciente?: string
+  resistenciaTerra?: string
+  tensaoAplicada?: string
+  isolacao?: string
+  limiteCorrenteFuga?: string
+  limiteResistenciaTerra?: string
+  resultado: 'Aprovado' | 'Reprovado'
+}
+
+export interface CondicoesAmbientais {
+  temperatura?: string
+  umidade?: string
+  pressao?: string
+  tensaoRede?: string
 }
 
 export interface Certificado extends ResourceBase {
+  numeroCertificado?: string
   equipamentoId: string
   equipamentoNome: string
   equipamentoNumeroSerie: string
+  equipamentoTag?: string
+  equipamentoPatrimonio?: string
   rotinaId?: string
   rotinaNome?: string
   padraoId?: string
   padraoNome?: string
+  osId?: string
+  clienteId?: string
+  clienteNome?: string
   tecnicoNome: string
-  tipo: 'preventiva' | 'calibracao'
+  tecnicoRegistro?: string
+  tipo: TipoCertificado
   data: string
-  statusGeral: 'aprovado' | 'reprovado'
+  proximaData?: string
+  statusGeral: 'aprovado' | 'reprovado' | 'em-andamento'
   observacoes?: string
+  conclusaoTecnica?: string
+  recomendacoes?: string
   checklist: Array<{ nome: string; status: 'ok' | 'nok' | 'conforme' | 'nao-conforme'; medicao?: string }>
+  medicoes?: MedicaoCalibracao[]
+  segurancaEletrica?: ResultadoSegurancaEletrica
+  condicoesAmbientais?: CondicoesAmbientais
+  versao?: number
+  assinado?: boolean
+  assinadoPor?: string
+  assinadoEm?: string
 }
 
 export interface PadraoCalibracao extends ResourceBase {
