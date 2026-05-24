@@ -1,5 +1,6 @@
 import { access, mkdir, readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { ENTITY_CONFIGS, demoAccounts, generatePrefixedId, initialDemoDatabase, type AppMode, type AppRecordMap, type CollectionName, type ConfiguracaoSistema } from '@atlasmed/shared'
 import { getFirebaseAdminDb } from './firebaseAdmin.js'
 import { env } from './env.js'
@@ -33,7 +34,11 @@ const PREFIX_OVERRIDES: Record<CollectionName, string> = {
   configuracoes: 'CFG',
 }
 
-const DEMO_DB_PATH = path.resolve(process.cwd(), 'data', 'demo-db.json')
+// On Vercel, /tmp is the only writable directory; otherwise resolve relative to this file
+const _storeDir = path.dirname(fileURLToPath(import.meta.url))
+const DEMO_DB_PATH = process.env['VERCEL']
+  ? '/tmp/atlasmed-demo-db.json'
+  : path.resolve(_storeDir, '../data', 'demo-db.json')
 
 function cloneSnapshot(snapshot: Snapshot): Snapshot {
   return JSON.parse(JSON.stringify(snapshot)) as Snapshot
