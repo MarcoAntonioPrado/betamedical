@@ -17,7 +17,14 @@ function readParam(value: string | string[] | undefined, label: string): string 
 
 app.use(
   cors({
-    origin: env.FRONTEND_URL.split(',').map((url) => url.trim()),
+    origin: (origin, callback) => {
+      // Same-origin requests (Vercel) have no Origin header — always allow.
+      if (!origin) return callback(null, true)
+      const allowed = env.FRONTEND_URL.split(',').map((u) => u.trim())
+      // Wildcard or explicit match
+      if (allowed.includes('*') || allowed.includes(origin)) return callback(null, true)
+      callback(new Error(`CORS: origem não permitida — ${origin}`))
+    },
     credentials: true,
   }),
 )

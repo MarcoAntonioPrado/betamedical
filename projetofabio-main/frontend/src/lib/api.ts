@@ -1,6 +1,6 @@
 import type { ApiEnvelope, AppRecordMap, CloseServiceOrderRequest, CollectionName, CreateUserRequest, InventoryMovementRequest, LoginRequest, SessionPayload } from '@atlasmed/shared'
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.trim() || 'http://localhost:3001'
+const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? ''
 
 let authToken: string | null = null
 
