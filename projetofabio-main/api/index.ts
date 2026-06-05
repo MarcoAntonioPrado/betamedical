@@ -1,8 +1,7 @@
 // Vercel Serverless Function — entry point for the Express API.
-// Vercel compiles this file with esbuild, which resolves .js imports to .ts.
-// The build command (vercel.json) must run `npm run build --workspace shared`
-// before this function is compiled so that @atlasmed/shared/dist exists.
+// Imports the pre-compiled backend (built during the Vercel buildCommand)
+// so esbuild does not need to re-bundle TypeScript source files.
 
-import { app } from '../backend/src/app.js'
+import { app } from '../backend/dist/app.js'
 
 export default app

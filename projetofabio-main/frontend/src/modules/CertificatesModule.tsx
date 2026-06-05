@@ -8,6 +8,7 @@ import { StatusPill } from '../components/StatusPill'
 import { ViewModeToggle } from '../components/ViewModeToggle'
 import { useAppData } from '../contexts/AppDataContext'
 import { useUi } from '../contexts/UiContext'
+import { useCompanyProfile } from '../hooks/useCompanyProfile'
 import { useModuleViewMode } from '../hooks/useModuleViewMode'
 
 // --------------- helpers ---------------
@@ -121,6 +122,7 @@ const newPadraoForm = (): PadraoForm => ({
 export function CertificatesModule() {
   const { collections, ensureCollections, saveRecord, deleteRecord } = useAppData()
   const { showNotice } = useUi()
+  const company = useCompanyProfile()
   const printCertificate = usePrintCertificate()
 
   const [tab, setTab] = useState<'certificados' | 'rotinas' | 'padroes'>('certificados')
@@ -350,7 +352,7 @@ export function CertificatesModule() {
   function handlePrint(cert: Certificado) {
     const eq = equipments.find((e) => e.id === cert.equipamentoId) as never
     const padrao = patterns.find((p) => p.id === cert.padraoId)
-    printCertificate({ cert, equipment: eq, padrao })
+    printCertificate({ cert, equipment: eq, padrao, company })
   }
 
   return (

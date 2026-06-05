@@ -6,7 +6,7 @@ import { useUi } from '../contexts/UiContext'
 export function SettingsModule() {
   const { collections, ensureCollections, saveRecord } = useAppData()
   const { showNotice } = useUi()
-  const [form, setForm] = useState({ nomeEmpresa: '', tagline: '', cidadeBase: '', telefone: '', email: '', endereco: '' })
+  const [form, setForm] = useState({ nomeEmpresa: '', tagline: '', cnpj: '', cidadeBase: '', telefone: '', email: '', site: '', endereco: '', responsavelTecnico: '', registroTecnico: '' })
 
   useEffect(() => {
     void ensureCollections(['configuracoes'])
@@ -19,10 +19,14 @@ export function SettingsModule() {
     setForm({
       nomeEmpresa: value.nomeEmpresa ?? 'AtlasMed Beta',
       tagline: value.tagline ?? '',
+      cnpj: value.cnpj ?? '',
       cidadeBase: value.cidadeBase ?? '',
       telefone: value.telefone ?? '',
       email: value.email ?? '',
+      site: value.site ?? '',
       endereco: value.endereco ?? '',
+      responsavelTecnico: value.responsavelTecnico ?? '',
+      registroTecnico: value.registroTecnico ?? '',
     })
   }, [companyProfile])
 
@@ -61,6 +65,10 @@ export function SettingsModule() {
               <input value={form.tagline} onChange={(event) => setForm((current) => ({ ...current, tagline: event.target.value }))} />
             </label>
             <label className="field-group">
+              <span>CNPJ</span>
+              <input value={form.cnpj} onChange={(event) => setForm((current) => ({ ...current, cnpj: event.target.value }))} />
+            </label>
+            <label className="field-group">
               <span>Cidade base</span>
               <input value={form.cidadeBase} onChange={(event) => setForm((current) => ({ ...current, cidadeBase: event.target.value }))} />
             </label>
@@ -72,9 +80,21 @@ export function SettingsModule() {
               <span>Email</span>
               <input type="email" value={form.email} onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))} />
             </label>
+            <label className="field-group">
+              <span>Site</span>
+              <input value={form.site} onChange={(event) => setForm((current) => ({ ...current, site: event.target.value }))} />
+            </label>
             <label className="field-group full">
               <span>Endereço</span>
               <input value={form.endereco} onChange={(event) => setForm((current) => ({ ...current, endereco: event.target.value }))} />
+            </label>
+            <label className="field-group">
+              <span>Responsável técnico</span>
+              <input value={form.responsavelTecnico} onChange={(event) => setForm((current) => ({ ...current, responsavelTecnico: event.target.value }))} />
+            </label>
+            <label className="field-group">
+              <span>Registro do responsável (CREA/ART)</span>
+              <input value={form.registroTecnico} onChange={(event) => setForm((current) => ({ ...current, registroTecnico: event.target.value }))} />
             </label>
           </div>
           <div className="modal-actions">

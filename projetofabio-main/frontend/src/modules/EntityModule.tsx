@@ -6,7 +6,9 @@ import { StatusPill } from '../components/StatusPill'
 import { ViewModeToggle } from '../components/ViewModeToggle'
 import { useAppData } from '../contexts/AppDataContext'
 import { useUi } from '../contexts/UiContext'
+import { useCompanyProfile } from '../hooks/useCompanyProfile'
 import { useModuleViewMode } from '../hooks/useModuleViewMode'
+import { printGenericDocument } from '../lib/pdf'
 import { buildInitialForm, isFullWidthField, readInputValue, serializeForm } from './formUtils'
 
 interface EntityModuleProps {
@@ -75,6 +77,7 @@ function FieldEditor({
 export function EntityModule({ config }: EntityModuleProps) {
   const { collections, ensureCollections, saveRecord, deleteRecord, resolveLabel } = useAppData()
   const { showNotice } = useUi()
+  const company = useCompanyProfile()
   const [search, setSearch] = useState('')
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
   const [open, setOpen] = useState(false)
@@ -155,6 +158,40 @@ export function EntityModule({ config }: EntityModuleProps) {
     }
   }
 
+  function formatFieldValue(field: FieldDefinition, value: unknown): string {
+    if (field.relation) return resolveLabel(field.relation.collection, String(value || ''), field.relation.labelKey)
+    if (field.type === 'currency') return formatCurrency(Number(value || 0))
+    if (field.type === 'date') return value ? formatDate(String(value)) : ''
+    if (field.type === 'checkbox') return value ? 'Sim' : 'Não'
+    return value === undefined || value === null ? '' : String(value)
+  }
+
+  function handlePrint(record: Record<string, unknown>) {
+    const statusField = config.fields.find((field) => field.type === 'status' || field.key.toLowerCase().includes('status'))
+    const status = statusField ? String(record[statusField.key] ?? '') : ''
+    const rows = config.fields
+      .filter((field) => field.type !== 'textarea')
+      .map((field) => ({ label: field.label, value: formatFieldValue(field, record[field.key]) }))
+    const notes = config.fields
+      .filter((field) => field.type === 'textarea')
+      .map((field) => {
+        const text = String(record[field.key] ?? '').trim()
+        return text ? `${field.label}: ${text}` : ''
+      })
+      .filter(Boolean)
+      .join('\n\n')
+    const label = config.singularLabel.charAt(0).toUpperCase() + config.singularLabel.slice(1)
+    printGenericDocument({
+      company,
+      documentLabel: label,
+      title: String(record[primaryColumn.key] ?? record.id ?? ''),
+      recordId: String(record.id ?? ''),
+      status: status ? { label: status } : undefined,
+      groups: [{ title: `Dados do ${config.singularLabel}`, rows }],
+      notes: notes || undefined,
+    })
+  }
+
   function renderCell(columnKey: string, value: unknown) {
     const field = config.fields.find((item) => item.key === columnKey)
     if (field?.relation) {
@@ -217,6 +254,9 @@ export function EntityModule({ config }: EntityModuleProps) {
                 </div>
               ))}
               <div className="inline-actions">
+                <button className="ghost-button" type="button" onClick={() => handlePrint(record)}>
+                  PDF
+                </button>
                 <button className="ghost-button" type="button" onClick={() => openEdit(record)}>
                   Editar
                 </button>
@@ -254,6 +294,9 @@ export function EntityModule({ config }: EntityModuleProps) {
                 ))}
               </div>
               <div className="record-card-actions">
+                <button className="ghost-button" type="button" onClick={() => handlePrint(record)}>
+                  PDF
+                </button>
                 <button className="ghost-button" type="button" onClick={() => openEdit(record)}>
                   Editar
                 </button>

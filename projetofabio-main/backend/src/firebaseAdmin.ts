@@ -31,6 +31,14 @@ export function getFirebaseAdminAuth() {
   return getAuth(ensureFirebaseApp())
 }
 
+// Cached instance so .settings() is only called once per process.
+// preferRest avoids the gRPC persistent-connection requirement that breaks
+// Vercel serverless functions (and similar platforms).
+let _db: ReturnType<typeof getFirestore> | null = null
+
 export function getFirebaseAdminDb() {
-  return getFirestore(ensureFirebaseApp())
+  if (_db) return _db
+  _db = getFirestore(ensureFirebaseApp())
+  _db.settings({ preferRest: true })
+  return _db
 }

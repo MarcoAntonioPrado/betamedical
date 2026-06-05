@@ -485,10 +485,14 @@
       "valor": {
         "nomeEmpresa": "AtlasMed Beta",
         "tagline": "Gestão moderna para equipamentos médicos e engenharia clínica.",
-        "cidadeBase": "Campinas",
+        "cnpj": "21.200.333/0001-55",
+        "cidadeBase": "Campinas - SP",
         "telefone": "(19) 3200-4500",
         "email": "contato@atlasmed.demo",
-        "endereco": "Rua das Oficinas, 145"
+        "site": "www.atlasmed.demo",
+        "endereco": "Rua das Oficinas, 145 - Centro",
+        "responsavelTecnico": "Eng. Fábio Andrade",
+        "registroTecnico": "CREA-SP 5069874130"
       },
       "createdAt": "2026-05-20T10:00:00.000Z",
       "updatedAt": "2026-05-20T10:00:00.000Z"

@@ -21,6 +21,9 @@ app.use(
       // Same-origin requests (Vercel) have no Origin header — always allow.
       if (!origin) return callback(null, true)
       const allowed = env.FRONTEND_URL.split(',').map((u) => u.trim())
+      // Automatically allow the Vercel deployment URL (set by Vercel at build/runtime).
+      const vercelUrl = process.env['VERCEL_URL']
+      if (vercelUrl) allowed.push(`https://${vercelUrl}`)
       // Wildcard or explicit match
       if (allowed.includes('*') || allowed.includes(origin)) return callback(null, true)
       callback(new Error(`CORS: origem não permitida — ${origin}`))
@@ -31,10 +34,13 @@ app.use(
 app.use(express.json({ limit: '2mb' }))
 
 app.get('/api/health', async (_request, response) => {
+  const fbConfigured = Boolean(env.FIREBASE_PROJECT_ID && env.FIREBASE_CLIENT_EMAIL && env.FIREBASE_PRIVATE_KEY)
   response.json({
     data: {
       status: 'ok',
       mode: dataStore.mode,
+      firebaseConfigured: fbConfigured,
+      firebaseProjectId: env.FIREBASE_PROJECT_ID ?? '(não definido)',
       timestamp: new Date().toISOString(),
     },
   })
@@ -172,6 +178,15 @@ app.post('/api/users', async (request: AuthenticatedRequest, response, next) => 
 
 app.use((error: unknown, _request: express.Request, response: express.Response, _next: express.NextFunction) => {
   void _next
+
+  // Firebase Admin auth errors (invalid/expired token) → 401
+  if (error instanceof Error && 'code' in error) {
+    const code = String((error as { code: unknown }).code)
+    if (code.startsWith('auth/')) {
+      return void response.status(401).json({ error: 'Sessão inválida. Faça login novamente.' })
+    }
+  }
+
   const status = error instanceof HttpError ? error.status : 500
   response.status(status).json({
     error: getErrorMessage(error),

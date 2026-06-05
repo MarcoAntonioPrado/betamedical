@@ -1,11 +1,12 @@
 import type { Certificado, Equipamento, PadraoCalibracao } from '@atlasmed/shared'
 import { TIPO_CERTIFICADO_LABELS } from '@atlasmed/shared'
+import type { CompanyProfile } from '../lib/pdf'
 
 interface PrintCertificateOptions {
   cert: Certificado
   equipment?: Equipamento
   padrao?: PadraoCalibracao
-  companyName?: string
+  company?: CompanyProfile
 }
 
 function formatDate(dateStr: string | undefined): string {
@@ -18,7 +19,16 @@ function formatDate(dateStr: string | undefined): string {
 }
 
 function buildCertificateHtml(opts: PrintCertificateOptions): string {
-  const { cert, equipment, padrao, companyName = 'AtlasMed Engenharia Clínica' } = opts
+  const { cert, equipment, padrao, company } = opts
+  const companyName = company?.nomeEmpresa ?? 'AtlasMed Engenharia Clínica'
+  const companyTagline = company?.tagline ?? 'Engenharia Clínica · Gestão de Equipamentos Médicos'
+  const companyMetaParts: string[] = []
+  if (company?.cnpj) companyMetaParts.push(`CNPJ: ${company.cnpj}`)
+  const localParts = [company?.endereco, company?.cidadeBase].filter(Boolean)
+  if (localParts.length) companyMetaParts.push(localParts.join(' · '))
+  const contactParts = [company?.telefone, company?.email, company?.site].filter(Boolean)
+  if (contactParts.length) companyMetaParts.push(contactParts.join(' · '))
+  const companyMeta = companyMetaParts.join('<br>')
   const tipoLabel = TIPO_CERTIFICADO_LABELS[cert.tipo] ?? cert.tipo
   const statusColor = cert.statusGeral === 'aprovado' ? '#16a34a' : cert.statusGeral === 'reprovado' ? '#dc2626' : '#d97706'
   const statusLabel = cert.statusGeral === 'aprovado' ? 'APROVADO' : cert.statusGeral === 'reprovado' ? 'REPROVADO' : 'EM ANDAMENTO'
@@ -40,6 +50,7 @@ function buildCertificateHtml(opts: PrintCertificateOptions): string {
   .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #1e40af; padding-bottom: 10px; margin-bottom: 12px; }
   .company-name { font-size: 15pt; font-weight: bold; color: #1e40af; }
   .company-sub { font-size: 9pt; color: #555; }
+  .company-meta { font-size: 7.8pt; color: #666; margin-top: 5px; line-height: 1.5; }
   .cert-title { text-align: right; }
   .cert-title h1 { font-size: 12pt; font-weight: bold; color: #1e40af; }
   .cert-title .cert-num { font-size: 9pt; color: #555; margin-top: 3px; }
@@ -70,7 +81,8 @@ function buildCertificateHtml(opts: PrintCertificateOptions): string {
   <div class="header">
     <div>
       <div class="company-name">${companyName}</div>
-      <div class="company-sub">Engenharia Clínica · Gestão de Equipamentos Médicos</div>
+      <div class="company-sub">${companyTagline}</div>
+      ${companyMeta ? `<div class="company-meta">${companyMeta}</div>` : ''}
     </div>
     <div class="cert-title">
       <h1>CERTIFICADO — ${tipoLabel.toUpperCase()}</h1>
@@ -217,7 +229,7 @@ function buildCertificateHtml(opts: PrintCertificateOptions): string {
     <div>
       <div class="sig-line">
         Aprovação / Visto<br>
-        <strong>${cert.assinadoPor ?? '___________________________'}</strong>
+        <strong>${cert.assinadoPor ?? company?.responsavelTecnico ?? '___________________________'}</strong>
       </div>
     </div>
   </div>

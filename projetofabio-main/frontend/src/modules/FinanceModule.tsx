@@ -4,10 +4,13 @@ import { SearchField } from '../components/SearchField'
 import { StatusPill } from '../components/StatusPill'
 import { ViewModeToggle } from '../components/ViewModeToggle'
 import { useAppData } from '../contexts/AppDataContext'
+import { useCompanyProfile } from '../hooks/useCompanyProfile'
 import { useModuleViewMode } from '../hooks/useModuleViewMode'
+import { fmtDate, fmtMoney, printGenericDocument } from '../lib/pdf'
 
 export function FinanceModule() {
   const { collections, ensureCollections, resolveLabel } = useAppData()
+  const company = useCompanyProfile()
   const [search, setSearch] = useState('')
   const { viewMode, setViewMode } = useModuleViewMode('financeiro')
 
@@ -52,6 +55,36 @@ export function FinanceModule() {
   const activeContractsRevenue = contracts.filter((item) => item.status === 'Ativo').reduce((total, item) => total + Number(item.valorMensal || 0), 0)
   const approvedBudgets = budgets.filter((item) => item.status === 'Aprovado').reduce((total, item) => total + Number(item.total || 0), 0)
 
+  function handlePrintReport() {
+    const totalGeral = feed.reduce((total, row) => total + Number(row.value || 0), 0)
+    printGenericDocument({
+      company,
+      documentLabel: 'Relatório Financeiro',
+      title: 'Consolidado de lançamentos',
+      groups: [
+        {
+          title: 'Indicadores',
+          rows: [
+            { label: 'Receita mensal ativa (contratos)', value: fmtMoney(activeContractsRevenue) },
+            { label: 'Contratos ativos', value: String(contracts.filter((item) => item.status === 'Ativo').length) },
+            { label: 'Orçamentos aprovados', value: fmtMoney(approvedBudgets) },
+            { label: 'Propostas aprovadas', value: String(budgets.filter((item) => item.status === 'Aprovado').length) },
+            { label: 'Total de lançamentos', value: fmtMoney(totalGeral) },
+          ],
+        },
+      ],
+      tables: feed.length
+        ? [
+            {
+              title: 'Lançamentos',
+              head: ['Tipo', 'Código', 'Cliente', 'Data', 'Status', 'Valor'],
+              rows: feed.map((row) => [row.type, String(row.id), row.client, fmtDate(row.date), String(row.status), fmtMoney(row.value)]),
+            },
+          ]
+        : undefined,
+    })
+  }
+
   return (
     <section className="module-card">
       <div className="summary-grid">
@@ -71,6 +104,9 @@ export function FinanceModule() {
         <div className="module-toolbar-actions">
           <SearchField value={search} onChange={setSearch} placeholder="Pesquisar por cliente, tipo ou status..." total={feed.length} />
           <ViewModeToggle value={viewMode} onChange={setViewMode} />
+          <button className="primary-button" type="button" onClick={handlePrintReport}>
+            Relatório PDF
+          </button>
         </div>
       </div>
 

@@ -6,7 +6,9 @@ import { StatusPill } from '../components/StatusPill'
 import { ViewModeToggle } from '../components/ViewModeToggle'
 import { useAppData } from '../contexts/AppDataContext'
 import { useUi } from '../contexts/UiContext'
+import { useCompanyProfile } from '../hooks/useCompanyProfile'
 import { useModuleViewMode } from '../hooks/useModuleViewMode'
+import { fmtDate, fmtMoney, printGenericDocument } from '../lib/pdf'
 import { buildInitialForm, readInputValue, serializeForm } from './formUtils'
 
 interface InventoryModuleProps {
@@ -16,6 +18,7 @@ interface InventoryModuleProps {
 export function InventoryModule({ config }: InventoryModuleProps) {
   const { collections, ensureCollections, saveRecord, deleteRecord, moveInventory, resolveLabel } = useAppData()
   const { showNotice } = useUi()
+  const company = useCompanyProfile()
   const [search, setSearch] = useState('')
   const [onlyLowStock, setOnlyLowStock] = useState(false)
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
@@ -76,6 +79,51 @@ export function InventoryModule({ config }: InventoryModuleProps) {
     if (!window.confirm(`Deseja remover esta ${config.singularLabel}?`)) return
     await deleteRecord(config.collection, id)
     showNotice({ tone: 'success', title: 'Registro removido', message: `${config.singularLabel} removido do estoque.` })
+  }
+
+  function handlePrint(record: Record<string, unknown>) {
+    const historico = (record.historico as Array<Record<string, unknown>> | undefined) ?? []
+    const label = config.singularLabel.charAt(0).toUpperCase() + config.singularLabel.slice(1)
+    printGenericDocument({
+      company,
+      documentLabel: `Ficha de ${label}`,
+      title: String(record.nome ?? record.id ?? ''),
+      recordId: String(record.id ?? ''),
+      status: record.status ? { label: String(record.status) } : undefined,
+      groups: [
+        {
+          title: 'Dados do Item',
+          rows: [
+            { label: 'Código', value: String(record.codigo ?? '') },
+            { label: 'Nome', value: String(record.nome ?? '') },
+            { label: 'Descrição', value: String(record.descricao ?? '') },
+            { label: 'Fornecedor', value: resolveLabel('fornecedores', String(record.fornecedorId ?? ''), 'nome') },
+            { label: 'Localização', value: String(record.localizacao ?? '') },
+            { label: 'Unidade', value: String(record.unidade ?? '') },
+            { label: 'Saldo Atual', value: String(record.quantidade ?? 0) },
+            { label: 'Estoque Mínimo', value: String(record.minimo ?? 0) },
+            { label: 'Preço de Custo', value: fmtMoney(record.precoCusto) },
+            { label: 'Preço de Venda', value: fmtMoney(record.precoVenda) },
+          ],
+        },
+      ],
+      tables: historico.length
+        ? [
+            {
+              title: 'Histórico de Movimentações',
+              head: ['Data', 'Tipo', 'Qtd', 'Saldo', 'Custo Unit.', 'Observação'],
+              rows: historico.map((mov) => [
+                fmtDate(mov.data),
+                String(mov.tipo ?? ''),
+                String(mov.qtd ?? ''),
+                String(mov.saldo ?? ''),
+                mov.custoUnitario != null ? fmtMoney(mov.custoUnitario) : '',
+                String(mov.obs ?? ''),
+              ]),
+            },
+          ]
+        : undefined,
+    })
   }
 
   async function handleMove(event: React.FormEvent<HTMLFormElement>) {
@@ -177,6 +225,9 @@ export function InventoryModule({ config }: InventoryModuleProps) {
                 }}>
                   Saída
                 </button>
+                <button className="ghost-button sm" type="button" onClick={() => handlePrint(record)}>
+                  PDF
+                </button>
                 <button className="ghost-button sm danger" type="button" onClick={() => handleDelete(String(record.id))}>
                   Remover
                 </button>
@@ -241,6 +292,9 @@ export function InventoryModule({ config }: InventoryModuleProps) {
                   setMovementOpen(true)
                 }}>
                   Saída
+                </button>
+                <button className="ghost-button" type="button" onClick={() => handlePrint(record)}>
+                  PDF
                 </button>
                 <button className="ghost-button danger" type="button" onClick={() => handleDelete(String(record.id))}>
                   Remover

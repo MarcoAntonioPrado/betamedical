@@ -6,7 +6,9 @@ import { StatusPill } from '../components/StatusPill'
 import { ViewModeToggle } from '../components/ViewModeToggle'
 import { useAppData } from '../contexts/AppDataContext'
 import { useUi } from '../contexts/UiContext'
+import { useCompanyProfile } from '../hooks/useCompanyProfile'
 import { useModuleViewMode } from '../hooks/useModuleViewMode'
+import { printBudgetDocument } from '../lib/pdf'
 
 interface BudgetItemForm {
   tipo: 'Servico' | 'Peça' | 'Acessório'
@@ -22,6 +24,7 @@ const emptyItem: BudgetItemForm = { tipo: 'Servico', descricao: '', quantidade: 
 export function BudgetModule() {
   const { collections, ensureCollections, saveRecord, deleteRecord, resolveLabel } = useAppData()
   const { showNotice } = useUi()
+  const company = useCompanyProfile()
   const [search, setSearch] = useState('')
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Record<string, unknown> | null>(null)
@@ -120,6 +123,12 @@ export function BudgetModule() {
     showNotice({ tone: 'success', title: 'Orçamento removido', message: 'O registro foi removido.' })
   }
 
+  function handlePrint(budget: Record<string, unknown>) {
+    const cliente = (collections.clientes ?? []).find((item) => item.id === budget.clienteId) as Record<string, unknown> | undefined
+    const equipamento = (collections.equipamentos ?? []).find((item) => item.id === budget.equipamentoId) as Record<string, unknown> | undefined
+    printBudgetDocument({ company, budget, cliente, equipamento })
+  }
+
   return (
     <section className="module-card">
       <div className="module-heading module-toolbar">
@@ -152,6 +161,9 @@ export function BudgetModule() {
               <StatusPill label={budget.status} />
               <span>{formatCurrency(Number(budget.total || 0))}</span>
               <div className="inline-actions">
+                <button className="ghost-button" type="button" onClick={() => handlePrint(budget as unknown as Record<string, unknown>)}>
+                  PDF
+                </button>
                 <button className="ghost-button" type="button" onClick={() => openEdit(budget as unknown as Record<string, unknown>)}>
                   Editar
                 </button>
@@ -187,6 +199,9 @@ export function BudgetModule() {
                 </div>
               </div>
               <div className="record-card-actions">
+                <button className="ghost-button" type="button" onClick={() => handlePrint(budget as unknown as Record<string, unknown>)}>
+                  PDF
+                </button>
                 <button className="ghost-button" type="button" onClick={() => openEdit(budget as unknown as Record<string, unknown>)}>
                   Editar
                 </button>

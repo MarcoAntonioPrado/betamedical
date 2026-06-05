@@ -4,17 +4,20 @@ import { Modal } from '../components/Modal'
 import { SearchField } from '../components/SearchField'
 import { StatusPill } from '../components/StatusPill'
 import { useAppData } from '../contexts/AppDataContext'
+import { useCompanyProfile } from '../hooks/useCompanyProfile'
 import { useModuleViewMode } from '../hooks/useModuleViewMode'
 import { ViewModeToggle } from '../components/ViewModeToggle'
+import { printServiceOrderDocument } from '../lib/pdf'
 
 export function HistoryModule() {
   const { collections, ensureCollections, resolveLabel } = useAppData()
+  const company = useCompanyProfile()
   const [search, setSearch] = useState('')
   const [detail, setDetail] = useState<Record<string, unknown> | null>(null)
   const { viewMode, setViewMode } = useModuleViewMode('historico-os')
 
   useEffect(() => {
-    void ensureCollections(['historicoOS', 'clientes', 'equipamentos', 'funcionarios'])
+    void ensureCollections(['historicoOS', 'clientes', 'equipamentos', 'funcionarios', 'pecas', 'acessorios'])
   }, [ensureCollections])
 
   const history = useMemo(
@@ -22,6 +25,20 @@ export function HistoryModule() {
     [collections.historicoOS],
   )
   const filtered = history.filter((item) => !search || `${item.id} ${item.descricao} ${item.status}`.toLowerCase().includes(search.toLowerCase()))
+
+  function handlePrint(order: Record<string, unknown>) {
+    const cliente = (collections.clientes ?? []).find((item) => item.id === order.clienteId) as Record<string, unknown> | undefined
+    const equipamento = (collections.equipamentos ?? []).find((item) => item.id === order.equipamentoId) as Record<string, unknown> | undefined
+    printServiceOrderDocument({
+      company,
+      order,
+      cliente,
+      equipamento,
+      tecnicoNome: order.funcionarioId ? resolveLabel('funcionarios', String(order.funcionarioId), 'nome') : '',
+      resolveItemName: (id) => resolveLabel('pecas', id, 'nome'),
+      isHistory: true,
+    })
+  }
 
   return (
     <section className="module-card">
@@ -51,9 +68,14 @@ export function HistoryModule() {
               <span>{resolveLabel('equipamentos', item.equipamentoId, 'nome')}</span>
               <span>{formatDate(item.fechadoEm)}</span>
               <StatusPill label={item.status} />
-              <button className="ghost-button" type="button" onClick={() => setDetail(item as unknown as Record<string, unknown>)}>
-                Ver detalhes
-              </button>
+              <div className="inline-actions">
+                <button className="ghost-button" type="button" onClick={() => setDetail(item as unknown as Record<string, unknown>)}>
+                  Ver detalhes
+                </button>
+                <button className="ghost-button" type="button" onClick={() => handlePrint(item as unknown as Record<string, unknown>)}>
+                  PDF
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -84,6 +106,9 @@ export function HistoryModule() {
               <div className="record-card-actions">
                 <button className="ghost-button" type="button" onClick={() => setDetail(item as unknown as Record<string, unknown>)}>
                   Ver detalhes
+                </button>
+                <button className="ghost-button" type="button" onClick={() => handlePrint(item as unknown as Record<string, unknown>)}>
+                  PDF
                 </button>
               </div>
             </article>
@@ -118,6 +143,13 @@ export function HistoryModule() {
               <strong>Diagnóstico</strong>
               <p>{String((detail.fechamento as { problema?: string } | undefined)?.problema ?? '-')}</p>
             </article>
+          </div>
+        ) : null}
+        {detail ? (
+          <div className="modal-actions">
+            <button className="primary-button" type="button" onClick={() => handlePrint(detail)}>
+              Gerar PDF
+            </button>
           </div>
         ) : null}
       </Modal>
