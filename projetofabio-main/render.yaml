@@ -2,7 +2,7 @@ services:
   - type: web
     name: atlasmed-beta-api
     runtime: node
-    rootDir: .
+    rootDir: projetofabio-main
     buildCommand: npm install && npm run build --workspace shared && npm run build --workspace backend
     startCommand: npm run start --workspace backend
     envVars:
