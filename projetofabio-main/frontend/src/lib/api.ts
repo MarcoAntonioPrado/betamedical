@@ -1,6 +1,26 @@
 import type { ApiEnvelope, AppRecordMap, CloseServiceOrderRequest, CollectionName, CreateUserRequest, InventoryMovementRequest, LoginRequest, SessionPayload } from '@atlasmed/shared'
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.trim() ?? ''
+/**
+ * Normaliza VITE_API_URL para evitar URLs malformadas:
+ * - remove espaços/quebras de linha
+ * - corrige valores colados em duplicidade (ex.: "https://x.comhttps://x.com")
+ * - remove barras e "/api" no final (o path já começa com /api)
+ */
+function normalizeApiUrl(raw: string | undefined): string {
+  let url = (raw ?? '').trim()
+  if (!url) return ''
+  // Se o valor foi colado mais de uma vez, mantém só a primeira ocorrência válida.
+  const duplicateMatch = url.match(/^(https?:\/\/[^/]+)(?:https?:\/\/.*)?/i)
+  if (duplicateMatch) {
+    const secondProtocol = url.indexOf('http', duplicateMatch[1].length)
+    if (secondProtocol > 0) url = url.slice(0, secondProtocol)
+  }
+  url = url.replace(/\/+$/, '') // remove barras finais
+  url = url.replace(/\/api$/i, '') // remove /api final (o path já inclui /api)
+  return url
+}
+
+const API_URL = normalizeApiUrl(import.meta.env.VITE_API_URL as string | undefined)
 
 let authToken: string | null = null
 
