@@ -131,7 +131,17 @@ export async function requireAuth(request: AuthenticatedRequest, _response: Resp
       throw new HttpError(401, 'Sessão inválida. Faça login novamente.')
     }
 
-    const user = env.APP_MODE === 'demo' ? decodeDemoToken(token) : await resolveFirebaseUser(token)
+    // Tokens demo são aceitos sempre que o login demo estiver habilitado, mesmo
+    // com o armazenamento em Firestore (APP_MODE=firebase). Tokens reais do
+    // Firebase Auth continuam sendo verificados normalmente.
+    let user: SessionUser | null = null
+    if (env.ENABLE_DEMO_LOGIN && token.startsWith('demo.')) {
+      user = decodeDemoToken(token)
+    } else if (env.APP_MODE === 'demo') {
+      user = decodeDemoToken(token)
+    } else {
+      user = await resolveFirebaseUser(token)
+    }
     if (!user) {
       throw new HttpError(401, 'Token inválido.')
     }

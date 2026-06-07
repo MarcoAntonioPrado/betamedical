@@ -58,7 +58,7 @@ app.get('/api/health', async (_request, response) => {
 
 app.post('/api/session/login', async (request, response, next) => {
   try {
-    if (env.APP_MODE !== 'demo') {
+    if (env.APP_MODE !== 'demo' && !env.ENABLE_DEMO_LOGIN) {
       throw new HttpError(400, 'No modo firebase, o login é feito no frontend com o SDK do Firebase Auth.')
     }
 
@@ -95,7 +95,7 @@ app.get('/api/bootstrap', async (request: AuthenticatedRequest, response, next) 
         permissions: request.permissions,
         modules: APP_MODULES,
         companyProfile: companyProfile?.valor ?? {},
-        demoHints: dataStore.mode === 'demo' ? await listDemoCredentialHints() : [],
+        demoHints: dataStore.mode === 'demo' || env.ENABLE_DEMO_LOGIN ? await listDemoCredentialHints() : [],
       },
     })
   } catch (error) {
