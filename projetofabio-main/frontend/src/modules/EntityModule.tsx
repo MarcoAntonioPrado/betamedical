@@ -240,14 +240,21 @@ export function EntityModule({ config }: EntityModuleProps) {
 
       {filteredRecords.length > 0 && viewMode === 'list' ? (
         <div className="table-shell">
-          <div className="table-head table-row-grid">
+          <div
+            className="table-head"
+            style={{ gridTemplateColumns: `repeat(${config.columns.length}, minmax(120px,1fr)) 196px` }}
+          >
             {config.columns.map((column) => (
               <span key={column.key}>{column.label}</span>
             ))}
             <span>Ações</span>
           </div>
           {filteredRecords.map((record) => (
-            <div key={String(record.id)} className="table-row table-row-grid">
+            <div
+              key={String(record.id)}
+              className="table-row"
+              style={{ gridTemplateColumns: `repeat(${config.columns.length}, minmax(120px,1fr)) 196px` }}
+            >
               {config.columns.map((column) => (
                 <div key={column.key}>
                   {column.type === 'status' ? <StatusPill label={String(record[column.key] ?? '-')} /> : renderCell(column.key, record[column.key])}

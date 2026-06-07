@@ -384,11 +384,11 @@ export function CertificatesModule() {
           {filteredCerts.length === 0 && <div className="empty-state">Nenhum certificado encontrado.</div>}
           {filteredCerts.length > 0 && certViewMode === 'list' && (
             <div className="table-shell">
-              <div className="table-head" style={{ gridTemplateColumns: '1fr 1.5fr 1fr 0.8fr 1fr 0.8fr auto' }}>
+              <div className="table-head" style={{ gridTemplateColumns: 'minmax(120px,1fr) minmax(160px,1.5fr) minmax(110px,1fr) minmax(96px,0.8fr) minmax(120px,1fr) minmax(96px,0.8fr) 196px' }}>
                 <span>Certificado</span><span>Equipamento</span><span>Tipo</span><span>Data</span><span>Técnico</span><span>Status</span><span>Ações</span>
               </div>
               {filteredCerts.map((item) => (
-                <div key={item.id} className="table-row" style={{ gridTemplateColumns: '1fr 1.5fr 1fr 0.8fr 1fr 0.8fr auto' }}>
+                <div key={item.id} className="table-row" style={{ gridTemplateColumns: 'minmax(120px,1fr) minmax(160px,1.5fr) minmax(110px,1fr) minmax(96px,0.8fr) minmax(120px,1fr) minmax(96px,0.8fr) 196px' }}>
                   <span className="monospace">{item.numeroCertificado ?? item.id}</span>
                   <span>{item.equipamentoNome}{item.equipamentoTag ? <small style={{ marginLeft: 4, opacity: 0.6 }}>[{item.equipamentoTag}]</small> : null}</span>
                   <span>{TIPO_CERTIFICADO_LABELS[item.tipo] ?? item.tipo}</span>
@@ -512,11 +512,11 @@ export function CertificatesModule() {
           {filteredPadroes.length === 0 && <div className="empty-state">Nenhum padrão de calibração cadastrado.</div>}
           {filteredPadroes.length > 0 && (
             <div className="table-shell">
-              <div className="table-head" style={{ gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr 0.8fr auto' }}>
+              <div className="table-head" style={{ gridTemplateColumns: 'minmax(160px,1.5fr) minmax(110px,1fr) minmax(120px,1fr) minmax(120px,1fr) minmax(120px,1fr) minmax(96px,0.8fr) 152px' }}>
                 <span>Nome</span><span>Tipo</span><span>Nº Série</span><span>Calibrado em</span><span>Validade</span><span>Status</span><span>Ações</span>
               </div>
               {filteredPadroes.map((padrao) => (
-                <div key={padrao.id} className="table-row" style={{ gridTemplateColumns: '1.5fr 1fr 1fr 1fr 1fr 0.8fr auto' }}>
+                <div key={padrao.id} className="table-row" style={{ gridTemplateColumns: 'minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,1fr) minmax(0,0.8fr) 152px' }}>
                   <span><strong>{padrao.nome}</strong>{padrao.fabricante && <small style={{ marginLeft: 4, opacity: 0.6 }}>{padrao.fabricante}</small>}</span>
                   <span>{padrao.tipo}</span>
                   <span className="monospace">{padrao.numeroSerie}</span>
@@ -598,7 +598,7 @@ export function CertificatesModule() {
             </label>
 
             <div className="field-group full" style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 4 }}>
-              <span style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Condições ambientais</span>
+              <span style={{ fontWeight: 600, color: 'var(--text-sub)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Condições ambientais</span>
             </div>
             <label className="field-group"><span>Temperatura</span><input value={certForm.tempCal} onChange={(e) => setCertF('tempCal', e.target.value)} placeholder="Ex.: 22°C" /></label>
             <label className="field-group"><span>Umidade relativa</span><input value={certForm.umidCal} onChange={(e) => setCertF('umidCal', e.target.value)} placeholder="Ex.: 55%" /></label>
@@ -608,7 +608,7 @@ export function CertificatesModule() {
             {certForm.tipo === 'calibracao' && (
               <div className="field-group full">
                 <div style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginBottom: 6 }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tabela de medições</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-sub)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Tabela de medições</span>
                 </div>
                 <div style={{ overflowX: 'auto' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
@@ -648,7 +648,7 @@ export function CertificatesModule() {
             {certForm.tipo === 'seguranca-eletrica' && (
               <>
                 <div className="field-group full" style={{ borderTop: '1px solid var(--border)', paddingTop: 8, marginTop: 4 }}>
-                  <span style={{ fontWeight: 600, color: 'var(--text-secondary)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Segurança elétrica (NBR IEC 60601-1)</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-sub)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Segurança elétrica (NBR IEC 60601-1)</span>
                 </div>
                 <label className="field-group"><span>Corrente de fuga à terra (mA)</span><input value={certForm.seguranca.correnteFugaTerra ?? ''} onChange={(e) => setSegF('correnteFugaTerra', e.target.value)} placeholder="0.08 mA" /></label>
                 <label className="field-group"><span>Corrente de fuga no invólucro (mA)</span><input value={certForm.seguranca.correnteFugaInvolucro ?? ''} onChange={(e) => setSegF('correnteFugaInvolucro', e.target.value)} placeholder="0.05 mA" /></label>
