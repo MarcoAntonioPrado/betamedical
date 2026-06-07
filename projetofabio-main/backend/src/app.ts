@@ -18,15 +18,25 @@ function readParam(value: string | string[] | undefined, label: string): string 
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Same-origin requests (Vercel) have no Origin header — always allow.
+      // Requisições same-origin ou ferramentas (sem header Origin) — sempre liberadas.
       if (!origin) return callback(null, true)
-      const allowed = env.FRONTEND_URL.split(',').map((u) => u.trim())
-      // Automatically allow the Vercel deployment URL (set by Vercel at build/runtime).
+
+      const normalize = (value: string) => value.trim().replace(/\/+$/, '').toLowerCase()
+      const requestOrigin = normalize(origin)
+
+      const allowed = env.FRONTEND_URL.split(',').map(normalize).filter(Boolean)
+
+      // URL da implantação Vercel (definida automaticamente pela Vercel).
       const vercelUrl = process.env['VERCEL_URL']
-      if (vercelUrl) allowed.push(`https://${vercelUrl}`)
-      // Wildcard or explicit match
-      if (allowed.includes('*') || allowed.includes(origin)) return callback(null, true)
-      callback(new Error(`CORS: origem não permitida — ${origin}`))
+      if (vercelUrl) allowed.push(normalize(`https://${vercelUrl}`))
+
+      // Curinga, lista vazia ou correspondência explícita → reflete a origem.
+      if (allowed.length === 0 || allowed.includes('*') || allowed.includes(requestOrigin)) {
+        return callback(null, true)
+      }
+
+      // Origem não permitida: não lança erro (evita 500). Apenas omite o cabeçalho CORS.
+      return callback(null, false)
     },
     credentials: true,
   }),
@@ -74,19 +84,23 @@ app.get('/api/session/me', async (request: AuthenticatedRequest, response) => {
   })
 })
 
-app.get('/api/bootstrap', async (request: AuthenticatedRequest, response) => {
-  const companyProfile = await dataStore.get('configuracoes', 'company-profile')
+app.get('/api/bootstrap', async (request: AuthenticatedRequest, response, next) => {
+  try {
+    const companyProfile = await dataStore.get('configuracoes', 'company-profile')
 
-  response.json({
-    data: {
-      mode: dataStore.mode,
-      user: request.user,
-      permissions: request.permissions,
-      modules: APP_MODULES,
-      companyProfile: companyProfile?.valor ?? {},
-      demoHints: dataStore.mode === 'demo' ? await listDemoCredentialHints() : [],
-    },
-  })
+    response.json({
+      data: {
+        mode: dataStore.mode,
+        user: request.user,
+        permissions: request.permissions,
+        modules: APP_MODULES,
+        companyProfile: companyProfile?.valor ?? {},
+        demoHints: dataStore.mode === 'demo' ? await listDemoCredentialHints() : [],
+      },
+    })
+  } catch (error) {
+    next(error)
+  }
 })
 
 app.get('/api/resources/:collection', async (request: AuthenticatedRequest, response, next) => {
